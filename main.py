@@ -218,6 +218,17 @@ class ToDoApp(BaseManager):
             raise ValidationError(f"Project '{name}' not found.")
         self._items.remove(project)
 
+    @staticmethod
+    def from_env() -> ToDoApp:
+        """Factory that builds app from environment variables."""
+        load_dotenv()
+        try:
+            max_projects = int(os.getenv("MAX_NUMBER_OF_PROJECT", "10"))
+            max_tasks = int(os.getenv("MAX_NUMBER_OF_TASK", "100"))
+        except ValueError as exc:
+            raise ValidationError("Environment values must be integers.") from exc
+        return ToDoApp(max_projects=max_projects, max_tasks=max_tasks)
+
 
 # ---------------------------------------------------------------------------
 # Entry Point
