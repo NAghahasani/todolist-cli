@@ -96,6 +96,7 @@ class ToDoApp(BaseManager):
 
     def run(self) -> None:
         """Run the CLI main loop for managing projects."""
+        print("📝 ToDoList CLI — Commands: new, edit, delete, exit.")
         print("📝 ToDoList CLI — Commands: new, edit, delete, list, exit.")
 
         while True:
@@ -120,6 +121,7 @@ class ToDoApp(BaseManager):
                 self._handle_delete_project()
                 continue
 
+            print("⚠️ Unknown command. Try 'new', 'edit', 'delete', or 'exit'.")
             if command == "list":
                 self._handle_list_projects()
                 continue
