@@ -70,12 +70,13 @@ class ToDoApp:
 
     def run(self) -> None:
         """Run the CLI main loop for managing projects."""
-        print("📝 ToDoList CLI — Type 'new', 'edit', or 'exit'.")
+        print("📝 ToDoList CLI — Type 'new' to create a project or 'exit' to quit.\n")
 
         while True:
-            command = input("\n> ").strip().lower()
+            command = input("> ").strip().lower()
 
             if not command:
+                # ورودی خالی = ادامه بده بدون خطا
                 continue
 
             if command in {"exit", "quit"}:
@@ -86,11 +87,7 @@ class ToDoApp:
                 self._handle_new_project()
                 continue
 
-            if command == "edit":
-                self._handle_edit_project()
-                continue
-
-            print("⚠️ Unknown command. Try 'new', 'edit', or 'exit'.")
+            print("⚠️ Unknown command. Try 'new' or 'exit'.")
 
     def _handle_new_project(self) -> None:
         """Handle creating a new project via CLI input."""
@@ -104,23 +101,13 @@ class ToDoApp:
         except ValidationError as err:
             print(f"❌ {err}\n")
 
-    def _handle_edit_project(self) -> None:
-        """Handle editing an existing project via CLI input."""
-        old_name = input("Enter current project name: ").strip()
-        new_name = input("Enter new project name: ").strip()
-        new_description = input("New description (optional): ").strip()
-
-        try:
-            project = self.edit_project(old_name, new_name, new_description)
-            print(f"✏️ Project '{old_name}' updated successfully → '{project.name}'")
-        except ValidationError as err:
-            print(f"❌ {err}\n")
-
     def create_project(self, name: str, description: str = "") -> Project:
         """Create a new project with validation checks."""
+        # Check project limit
         if len(self._projects) >= self._max_projects:
             raise ValidationError("Project limit reached.")
 
+        # Check name validity
         if _is_blank(name):
             raise ValidationError("Project name is required.")
 
@@ -129,42 +116,20 @@ class ToDoApp:
                 f"Project name must be between {NAME_MIN_LEN} and {NAME_MAX_LEN} characters."
             )
 
+        # Check description length
         if len(description) > DESC_MAX_LEN:
             raise ValidationError(
                 f"Description must be {DESC_MAX_LEN} characters or fewer."
             )
 
+        # Check for duplicate project name
         for project in self._projects:
             if project.name.strip().lower() == name.strip().lower():
                 raise ValidationError("Project name must be unique.")
 
+        # Create and store the project
         project = Project(name=name.strip(), description=description.strip())
         self._projects.append(project)
-        return project
-
-    def edit_project(self, old_name: str, new_name: str, new_description: str = "") -> Project:
-        """Edit an existing project's name and description."""
-        project = next((p for p in self._projects if p.name.lower() == old_name.strip().lower()), None)
-        if not project:
-            raise ValidationError(f"Project '{old_name}' not found.")
-
-        if _is_blank(new_name):
-            raise ValidationError("New project name cannot be empty.")
-
-        if not (NAME_MIN_LEN <= len(new_name) <= NAME_MAX_LEN):
-            raise ValidationError(
-                f"Project name must be between {NAME_MIN_LEN} and {NAME_MAX_LEN} characters."
-            )
-
-        for p in self._projects:
-            if p is not project and p.name.strip().lower() == new_name.strip().lower():
-                raise ValidationError("Another project with this name already exists.")
-
-        if len(new_description) > DESC_MAX_LEN:
-            raise ValidationError(f"Description must be {DESC_MAX_LEN} characters or fewer.")
-
-        project.name = new_name.strip()
-        project.description = new_description.strip()
         return project
 
     @staticmethod
