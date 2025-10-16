@@ -70,10 +70,10 @@ class ToDoApp:
 
     def run(self) -> None:
         """Run the CLI main loop for managing projects."""
-        print("📝 ToDoList CLI — Type 'new' to create a project or 'exit' to quit.\n")
+        print("📝 ToDoList CLI — Type 'new', 'edit', or 'exit'.")
 
         while True:
-            command = input("> ").strip().lower()
+            command = input("\n> ").strip().lower()
 
             if not command:
                 continue
@@ -86,7 +86,11 @@ class ToDoApp:
                 self._handle_new_project()
                 continue
 
-            print("⚠️ Unknown command. Try 'new' or 'exit'.")
+            if command == "edit":
+                self._handle_edit_project()
+                continue
+
+            print("⚠️ Unknown command. Try 'new', 'edit', or 'exit'.")
 
     def _handle_new_project(self) -> None:
         """Handle creating a new project via CLI input."""
@@ -97,6 +101,18 @@ class ToDoApp:
             project = self.create_project(name, description)
             print(f"✅ Project '{project.name}' created successfully!")
             print(f"Total projects: {len(self._projects)}\n")
+        except ValidationError as err:
+            print(f"❌ {err}\n")
+
+    def _handle_edit_project(self) -> None:
+        """Handle editing an existing project via CLI input."""
+        old_name = input("Enter current project name: ").strip()
+        new_name = input("Enter new project name: ").strip()
+        new_description = input("New description (optional): ").strip()
+
+        try:
+            project = self.edit_project(old_name, new_name, new_description)
+            print(f"✏️ Project '{old_name}' updated successfully → '{project.name}'")
         except ValidationError as err:
             print(f"❌ {err}\n")
 
@@ -128,12 +144,10 @@ class ToDoApp:
 
     def edit_project(self, old_name: str, new_name: str, new_description: str = "") -> Project:
         """Edit an existing project's name and description."""
-        # Find project by old name
         project = next((p for p in self._projects if p.name.lower() == old_name.strip().lower()), None)
         if not project:
             raise ValidationError(f"Project '{old_name}' not found.")
 
-        # Validate new name
         if _is_blank(new_name):
             raise ValidationError("New project name cannot be empty.")
 
@@ -142,16 +156,13 @@ class ToDoApp:
                 f"Project name must be between {NAME_MIN_LEN} and {NAME_MAX_LEN} characters."
             )
 
-        # Ensure uniqueness of new name
         for p in self._projects:
             if p is not project and p.name.strip().lower() == new_name.strip().lower():
                 raise ValidationError("Another project with this name already exists.")
 
-        # Validate description
         if len(new_description) > DESC_MAX_LEN:
             raise ValidationError(f"Description must be {DESC_MAX_LEN} characters or fewer.")
 
-        # Apply edits
         project.name = new_name.strip()
         project.description = new_description.strip()
         return project
