@@ -57,26 +57,51 @@ def _is_blank(value: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Base Manager (for inheritance)
+# ---------------------------------------------------------------------------
+
+class BaseManager:
+    """Base class providing common CRUD operations for managers."""
+
+    def __init__(self) -> None:
+        self._items: List = []
+
+    def list_all(self) -> List:
+        """Return all managed items."""
+        return self._items
+
+    def _find_by_name(self, name: str):
+        """Find an item by its name (case-insensitive)."""
+        return next((item for item in self._items if item.name.lower() == name.strip().lower()), None)
+
+    def delete_by_name(self, name: str) -> None:
+        """Delete an item by name."""
+        item = self._find_by_name(name)
+        if not item:
+            raise ValidationError(f"Item '{name}' not found.")
+        self._items.remove(item)
+
+
+# ---------------------------------------------------------------------------
 # Application Logic
 # ---------------------------------------------------------------------------
 
-class ToDoApp:
+class ToDoApp(BaseManager):
     """In-memory application state and operations."""
 
     def __init__(self, max_projects: int, max_tasks: int) -> None:
-        self._projects: List[Project] = []
+        super().__init__()
         self._max_projects = max_projects
         self._max_tasks = max_tasks
 
     def run(self) -> None:
         """Run the CLI main loop for managing projects."""
-        print("📝 ToDoList CLI — Type 'new' to create a project or 'exit' to quit.\n")
+        print("📝 ToDoList CLI — Commands: new, edit, delete, exit.")
 
         while True:
-            command = input("> ").strip().lower()
+            command = input("\n> ").strip().lower()
 
             if not command:
-                # ورودی خالی = ادامه بده بدون خطا
                 continue
 
             if command in {"exit", "quit"}:
@@ -87,7 +112,17 @@ class ToDoApp:
                 self._handle_new_project()
                 continue
 
-            print("⚠️ Unknown command. Try 'new' or 'exit'.")
+            if command == "edit":
+                self._handle_edit_project()
+                continue
+
+            if command == "delete":
+                self._handle_delete_project()
+                continue
+
+            print("⚠️ Unknown command. Try 'new', 'edit', 'delete', or 'exit'.")
+
+    # ------------------------------- Handlers --------------------------------
 
     def _handle_new_project(self) -> None:
         """Handle creating a new project via CLI input."""
@@ -97,17 +132,39 @@ class ToDoApp:
         try:
             project = self.create_project(name, description)
             print(f"✅ Project '{project.name}' created successfully!")
-            print(f"Total projects: {len(self._projects)}\n")
+            print(f"Total projects: {len(self._items)}\n")
         except ValidationError as err:
             print(f"❌ {err}\n")
 
+    def _handle_edit_project(self) -> None:
+        """Handle editing an existing project via CLI input."""
+        old_name = input("Enter current project name: ").strip()
+        new_name = input("Enter new project name: ").strip()
+        new_description = input("New description (optional): ").strip()
+
+        try:
+            project = self.edit_project(old_name, new_name, new_description)
+            print(f"✏️ Project '{old_name}' updated successfully → '{project.name}'")
+        except ValidationError as err:
+            print(f"❌ {err}\n")
+
+    def _handle_delete_project(self) -> None:
+        """Handle deleting an existing project via CLI input."""
+        name = input("Enter project name to delete: ").strip()
+
+        try:
+            self.delete_project(name)
+            print(f"🗑 Project '{name}' deleted successfully.")
+        except ValidationError as err:
+            print(f"❌ {err}\n")
+
+    # ------------------------------- Core Logic ------------------------------
+
     def create_project(self, name: str, description: str = "") -> Project:
         """Create a new project with validation checks."""
-        # Check project limit
-        if len(self._projects) >= self._max_projects:
+        if len(self._items) >= self._max_projects:
             raise ValidationError("Project limit reached.")
 
-        # Check name validity
         if _is_blank(name):
             raise ValidationError("Project name is required.")
 
@@ -116,32 +173,50 @@ class ToDoApp:
                 f"Project name must be between {NAME_MIN_LEN} and {NAME_MAX_LEN} characters."
             )
 
-        # Check description length
         if len(description) > DESC_MAX_LEN:
             raise ValidationError(
                 f"Description must be {DESC_MAX_LEN} characters or fewer."
             )
 
-        # Check for duplicate project name
-        for project in self._projects:
+        for project in self._items:
             if project.name.strip().lower() == name.strip().lower():
                 raise ValidationError("Project name must be unique.")
 
-        # Create and store the project
         project = Project(name=name.strip(), description=description.strip())
-        self._projects.append(project)
+        self._items.append(project)
         return project
 
-    @staticmethod
-    def from_env() -> ToDoApp:
-        """Factory that builds app from environment variables."""
-        load_dotenv()
-        try:
-            max_projects = int(os.getenv("MAX_NUMBER_OF_PROJECT", "10"))
-            max_tasks = int(os.getenv("MAX_NUMBER_OF_TASK", "100"))
-        except ValueError as exc:
-            raise ValidationError("Environment values must be integers.") from exc
-        return ToDoApp(max_projects=max_projects, max_tasks=max_tasks)
+    def edit_project(self, old_name: str, new_name: str, new_description: str = "") -> Project:
+        """Edit an existing project's name and description."""
+        project = self._find_by_name(old_name)
+        if not project:
+            raise ValidationError(f"Project '{old_name}' not found.")
+
+        if _is_blank(new_name):
+            raise ValidationError("New project name cannot be empty.")
+
+        if not (NAME_MIN_LEN <= len(new_name) <= NAME_MAX_LEN):
+            raise ValidationError(
+                f"Project name must be between {NAME_MIN_LEN} and {NAME_MAX_LEN} characters."
+            )
+
+        for p in self._items:
+            if p is not project and p.name.strip().lower() == new_name.strip().lower():
+                raise ValidationError("Another project with this name already exists.")
+
+        if len(new_description) > DESC_MAX_LEN:
+            raise ValidationError(f"Description must be {DESC_MAX_LEN} characters or fewer.")
+
+        project.name = new_name.strip()
+        project.description = new_description.strip()
+        return project
+
+    def delete_project(self, name: str) -> None:
+        """Delete a project and its associated tasks."""
+        project = self._find_by_name(name)
+        if not project:
+            raise ValidationError(f"Project '{name}' not found.")
+        self._items.remove(project)
 
 
 # ---------------------------------------------------------------------------
