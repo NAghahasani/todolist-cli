@@ -97,6 +97,7 @@ class ToDoApp(BaseManager):
     def run(self) -> None:
         """Run the CLI main loop for managing projects."""
         print("📝 ToDoList CLI — Commands: new, edit, delete, exit.")
+        print("📝 ToDoList CLI — Commands: new, edit, delete, list, exit.")
 
         while True:
             command = input("\n> ").strip().lower()
@@ -121,6 +122,11 @@ class ToDoApp(BaseManager):
                 continue
 
             print("⚠️ Unknown command. Try 'new', 'edit', 'delete', or 'exit'.")
+            if command == "list":
+                self._handle_list_projects()
+                continue
+
+            print("⚠️ Unknown command. Try 'new', 'edit', 'delete', 'list', or 'exit'.")
 
     # ------------------------------- Handlers --------------------------------
 
@@ -157,6 +163,19 @@ class ToDoApp(BaseManager):
             print(f"🗑 Project '{name}' deleted successfully.")
         except ValidationError as err:
             print(f"❌ {err}\n")
+
+    def _handle_list_projects(self) -> None:
+        """Handle listing all projects in the system."""
+        projects = self.list_projects()
+        if not projects:
+            print("📂 No projects found.")
+            return
+
+        print("\n📋 Projects:")
+        for index, project in enumerate(projects, start=1):
+            print(f"{index}. {project.name} — {project.description or '(no description)'} "
+                  f"({len(project.tasks)} tasks)")
+        print()
 
     # ------------------------------- Core Logic ------------------------------
 
@@ -217,6 +236,10 @@ class ToDoApp(BaseManager):
         if not project:
             raise ValidationError(f"Project '{name}' not found.")
         self._items.remove(project)
+
+    def list_projects(self) -> List[Project]:
+        """Return a list of all projects."""
+        return self._items
 
     @staticmethod
     def from_env() -> ToDoApp:
