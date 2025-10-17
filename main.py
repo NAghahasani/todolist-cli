@@ -1,4 +1,4 @@
-"""CLI ToDoList – Feature: Delete Task (Core)."""
+"""CLI ToDoList – Feature: Delete Task (Complete)."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -8,15 +8,9 @@ import os
 import sys
 
 
-# -----------------------------------------------------------------------------
-# Type Definitions
-# -----------------------------------------------------------------------------
 Status = Literal["todo", "doing", "done"]
 
 
-# -----------------------------------------------------------------------------
-# Data Models
-# -----------------------------------------------------------------------------
 @dataclass
 class Task:
     title: str
@@ -31,9 +25,6 @@ class Project:
     tasks: List[Task] = field(default_factory=list)
 
 
-# -----------------------------------------------------------------------------
-# Custom Exceptions
-# -----------------------------------------------------------------------------
 class AppError(Exception):
     """Base error for the application."""
 
@@ -50,9 +41,6 @@ class ValidationError(AppError):
         return not value or not value.strip()
 
 
-# -----------------------------------------------------------------------------
-# Core Application
-# -----------------------------------------------------------------------------
 class ToDoApp:
     """In-memory application state and operations."""
 
@@ -82,7 +70,6 @@ class ToDoApp:
         project = self._find_project(name)
         if not project:
             raise ValidationError(f"Project '{name}' not found.")
-        # Cascade delete
         project.tasks.clear()
         self._projects.remove(project)
 
@@ -130,16 +117,56 @@ class ToDoApp:
             raise ValidationError("Environment values must be integers.") from exc
         return ToDoApp(max_projects=max_projects, max_tasks=max_tasks)
 
-    # --------------------- CLI (placeholder) ---------------------
+    # --------------------- CLI ---------------------
 
     def run(self) -> None:
         print("📝 ToDoList CLI — Commands: new, add, delete-task, list, exit.")
-        print("(CLI command for delete-task will be added in the next step.)")
+
+        while True:
+            command = input("\n> ").strip().lower()
+
+            if command in {"exit", "quit"}:
+                print("👋 Goodbye!")
+                break
+
+            try:
+                if command == "new":
+                    name = input("Project name: ").strip()
+                    desc = input("Description (optional): ").strip()
+                    self.create_project(name, desc)
+                    print(f"✅ Project '{name}' created successfully!")
+
+                elif command == "add":
+                    proj = input("Project name: ").strip()
+                    title = input("Task title: ").strip()
+                    desc = input("Description (optional): ").strip()
+                    self.add_task(proj, title, desc)
+                    print(f"🆕 Task '{title}' added to project '{proj}'")
+
+                elif command == "delete-task":
+                    proj = input("Project name: ").strip()
+                    title = input("Task title to delete: ").strip()
+                    self.delete_task(proj, title)
+                    print(f"🗑️ Task '{title}' deleted from project '{proj}'")
+
+                elif command == "list":
+                    projects = self.list_projects()
+                    if not projects:
+                        print("📂 No projects found.")
+                        continue
+                    print("\n📋 Projects:")
+                    for i, p in enumerate(projects, start=1):
+                        print(f"{i}. {p.name} ({len(p.tasks)} tasks)")
+                        for j, t in enumerate(p.tasks, start=1):
+                            print(f"   {j}) {t.title} — {t.status}")
+
+                else:
+                    print("⚠️ Unknown command.")
+
+            except ValidationError as e:
+                print(f"❌ {e}")
 
 
-# -----------------------------------------------------------------------------
-# Main Entry
-# -----------------------------------------------------------------------------
 def main(argv: Optional[List[str]] = None) -> int:
     _ = argv or sys.argv[1:]
     app = ToDoApp.from_env()
