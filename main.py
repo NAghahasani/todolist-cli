@@ -1,4 +1,4 @@
-"""CLI ToDoList – Add Task Feature (Phase 2)."""
+"""CLI ToDoList – Feature: Delete Task (Core)."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -19,7 +19,6 @@ Status = Literal["todo", "doing", "done"]
 # -----------------------------------------------------------------------------
 @dataclass
 class Task:
-    """Represents a task within a project."""
     title: str
     description: str = ""
     status: Status = "todo"
@@ -27,7 +26,6 @@ class Task:
 
 @dataclass
 class Project:
-    """Represents a project that groups tasks."""
     name: str
     description: str = ""
     tasks: List[Task] = field(default_factory=list)
@@ -80,20 +78,13 @@ class ToDoApp:
         return project
 
     def delete_project(self, name: str) -> None:
-        project = self._find_by_name(name)
+        """Deletes a project and all its associated tasks (Cascade Delete)."""
+        project = self._find_project(name)
         if not project:
             raise ValidationError(f"Project '{name}' not found.")
+        # Cascade delete
+        project.tasks.clear()
         self._projects.remove(project)
-
-    def edit_project(self, old_name: str, new_name: str, new_description: str = "") -> Project:
-        project = self._find_by_name(old_name)
-        if not project:
-            raise ValidationError(f"Project '{old_name}' not found.")
-        if ValidationError._is_blank(new_name):
-            raise ValidationError("New project name cannot be empty.")
-        project.name = new_name.strip()
-        project.description = new_description.strip()
-        return project
 
     def list_projects(self) -> List[Project]:
         return self._projects
@@ -101,8 +92,7 @@ class ToDoApp:
     # --------------------- TASK MANAGEMENT ---------------------
 
     def add_task(self, project_name: str, title: str, description: str = "") -> Task:
-        """Add a new task to a specific project."""
-        project = self._find_by_name(project_name)
+        project = self._find_project(project_name)
         if not project:
             raise ValidationError(f"Project '{project_name}' not found.")
         if len(project.tasks) >= self._max_tasks:
@@ -113,9 +103,19 @@ class ToDoApp:
         project.tasks.append(task)
         return task
 
+    def delete_task(self, project_name: str, task_title: str) -> None:
+        """Deletes a task by title within a specific project."""
+        project = self._find_project(project_name)
+        if not project:
+            raise ValidationError(f"Project '{project_name}' not found.")
+        task = next((t for t in project.tasks if t.title.lower() == task_title.strip().lower()), None)
+        if not task:
+            raise ValidationError(f"Task '{task_title}' not found in project '{project_name}'.")
+        project.tasks.remove(task)
+
     # --------------------- HELPERS ---------------------
 
-    def _find_by_name(self, name: str) -> Optional[Project]:
+    def _find_project(self, name: str) -> Optional[Project]:
         return next((p for p in self._projects if p.name.lower() == name.lower()), None)
 
     # --------------------- ENV FACTORY ---------------------
@@ -130,48 +130,17 @@ class ToDoApp:
             raise ValidationError("Environment values must be integers.") from exc
         return ToDoApp(max_projects=max_projects, max_tasks=max_tasks)
 
-    # --------------------- CLI ---------------------
+    # --------------------- CLI (placeholder) ---------------------
 
     def run(self) -> None:
-        print("📝 ToDoList CLI — Commands: new, edit, delete, list, add, exit.")
-        while True:
-            command = input("\n> ").strip().lower()
-            if command in {"exit", "quit"}:
-                print("👋 Goodbye!")
-                break
-            if command == "new":
-                name = input("Project name: ").strip()
-                desc = input("Description (optional): ").strip()
-                try:
-                    p = self.create_project(name, desc)
-                    print(f"✅ Project '{p.name}' created successfully!")
-                except ValidationError as e:
-                    print(f"❌ {e}")
-            elif command == "add":
-                proj = input("Project name: ").strip()
-                title = input("Task title: ").strip()
-                desc = input("Description (optional): ").strip()
-                try:
-                    t = self.add_task(proj, title, desc)
-                    print(f"🆕 Task '{t.title}' added to project '{proj}'")
-                except ValidationError as e:
-                    print(f"❌ {e}")
-            elif command == "list":
-                projects = self.list_projects()
-                if not projects:
-                    print("📂 No projects found.")
-                    continue
-                print("\n📋 Projects:")
-                for i, p in enumerate(projects, start=1):
-                    print(f"{i}. {p.name} — {p.description or 'No description'} ({len(p.tasks)} tasks)")
-            else:
-                print("⚠️ Unknown command.")
+        print("📝 ToDoList CLI — Commands: new, add, delete-task, list, exit.")
+        print("(CLI command for delete-task will be added in the next step.)")
 
 
 # -----------------------------------------------------------------------------
 # Main Entry
 # -----------------------------------------------------------------------------
-def main(argv: Opسtional[List[str]] = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     _ = argv or sys.argv[1:]
     app = ToDoApp.from_env()
     app.run()
