@@ -1,4 +1,4 @@
-"""CLI ToDoList – Feature: Delete Task (Complete)."""
+"""CLI ToDoList – Phase 1 (In-Memory, Single File)."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -6,23 +6,30 @@ from typing import List, Literal, Optional
 from dotenv import load_dotenv
 import os
 import sys
-
+from datetime import datetime
+import itertools
 
 Status = Literal["todo", "doing", "done"]
 
 
 @dataclass
 class Task:
+    """Represents a task within a project."""
+    id: int
     title: str
     description: str = ""
     status: Status = "todo"
+    created_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
 class Project:
+    """Represents a project that groups tasks."""
+    id: int
     name: str
     description: str = ""
     tasks: List[Task] = field(default_factory=list)
+    created_at: datetime = field(default_factory=datetime.now)
 
 
 class AppError(Exception):
@@ -31,7 +38,6 @@ class AppError(Exception):
 
 class ValidationError(AppError):
     """Raised when input validation fails."""
-
     NAME_MIN_LEN = 1
     NAME_MAX_LEN = 50
     DESC_MAX_LEN = 200
@@ -44,136 +50,85 @@ class ValidationError(AppError):
 class ToDoApp:
     """In-memory application state and operations."""
 
+    _project_id_counter = itertools.count(1)
+    _task_id_counter = itertools.count(1)
+
     def __init__(self, max_projects: int, max_tasks: int) -> None:
         self._projects: List[Project] = []
         self._max_projects = max_projects
         self._max_tasks = max_tasks
 
-    # --------------------- PROJECT MANAGEMENT ---------------------
+    # --------------------------- PROJECT MANAGEMENT --------------------------
 
     def create_project(self, name: str, description: str = "") -> Project:
+        """Create a new project with validation checks."""
         if len(self._projects) >= self._max_projects:
             raise ValidationError("Project limit reached.")
         if ValidationError._is_blank(name):
             raise ValidationError("Project name is required.")
         if not (ValidationError.NAME_MIN_LEN <= len(name) <= ValidationError.NAME_MAX_LEN):
             raise ValidationError("Invalid project name length.")
-        for p in self._projects:
-            if p.name.strip().lower() == name.strip().lower():
-                raise ValidationError("Project name must be unique.")
-        project = Project(name=name.strip(), description=description.strip())
+        if len(description) > ValidationError.DESC_MAX_LEN:
+            raise ValidationError("Description too long.")
+        if any(p.name.lower() == name.lower() for p in self._projects):
+            raise ValidationError("Project name must be unique.")
+
+        project = Project(
+            id=next(self._project_id_counter),
+            name=name.strip(),
+            description=description.strip(),
+        )
         self._projects.append(project)
+        self._projects.sort(key=lambda p: p.created_at)
         return project
 
-    def _find_project(self, name: str) -> Optional[Project]:
-        return next((p for p in self._projects if p.name.lower() == name.lower()), None)
-
-    def delete_project(self, name: str) -> None:
-        """Deletes a project and all its associated tasks (Cascade Delete)."""
-        project = self._find_project(name)
-        if not project:
-            raise ValidationError(f"Project '{name}' not found.")
-        project.tasks.clear()
-        self._projects.remove(project)
-
     def list_projects(self) -> List[Project]:
-        return self._projects
+        """Return all projects sorted by creation time."""
+        return sorted(self._projects, key=lambda p: p.created_at)
 
-    # --------------------- TASK MANAGEMENT ---------------------
 
-    def add_task(self, project_name: str, title: str, description: str = "") -> Task:
-        project = self._find_project(project_name)
-        if not project:
-            raise ValidationError(f"Project '{project_name}' not found.")
-        if len(project.tasks) >= self._max_tasks:
-            raise ValidationError("Task limit reached for this project.")
-        if ValidationError._is_blank(title):
-            raise ValidationError("Task title is required.")
-        task = Task(title=title.strip(), description=description.strip())
-        project.tasks.append(task)
-        return task
-
-    def delete_task(self, project_name: str, task_title: str) -> None:
-        """Deletes a task by title within a specific project."""
-        project = self._find_project(project_name)
-        if not project:
-            raise ValidationError(f"Project '{project_name}' not found.")
-        task = next((t for t in project.tasks if t.title.lower() == task_title.strip().lower()), None)
-        if not task:
-            raise ValidationError(f"Task '{task_title}' not found in project '{project_name}'.")
-        project.tasks.remove(task)
-
-    # --------------------- HELPERS ---------------------
-
-    def _find_project(self, name: str) -> Optional[Project]:
-        return next((p for p in self._projects if p.name.lower() == name.lower()), None)
-
-    # --------------------- ENV FACTORY ---------------------
-
-    @staticmethod
-    def from_env() -> ToDoApp:
-        load_dotenv()
-        try:
-            max_projects = int(os.getenv("MAX_NUMBER_OF_PROJECT", "10"))
-            max_tasks = int(os.getenv("MAX_NUMBER_OF_TASK", "100"))
-        except ValueError as exc:
-            raise ValidationError("Environment values must be integers.") from exc
-        return ToDoApp(max_projects=max_projects, max_tasks=max_tasks)
-
-    # --------------------- CLI ---------------------
-
-    def run(self) -> None:
-        print("📝 ToDoList CLI — Commands: new, add, delete-task, list, exit.")
-
-        while True:
-            command = input("\n> ").strip().lower()
-
-            if command in {"exit", "quit"}:
-                print("👋 Goodbye!")
-                break
-
-            try:
-                if command == "new":
-                    name = input("Project name: ").strip()
-                    desc = input("Description (optional): ").strip()
-                    self.create_project(name, desc)
-                    print(f"✅ Project '{name}' created successfully!")
-
-                elif command == "add":
-                    proj = input("Project name: ").strip()
-                    title = input("Task title: ").strip()
-                    desc = input("Description (optional): ").strip()
-                    self.add_task(proj, title, desc)
-                    print(f"🆕 Task '{title}' added to project '{proj}'")
-
-                elif command == "delete-task":
-                    proj = input("Project name: ").strip()
-                    title = input("Task title to delete: ").strip()
-                    self.delete_task(proj, title)
-                    print(f"🗑️ Task '{title}' deleted from project '{proj}'")
-
-                elif command == "list":
-                    projects = self.list_projects()
-                    if not projects:
-                        print("📂 No projects found.")
-                        continue
-                    print("\n📋 Projects:")
-                    for i, p in enumerate(projects, start=1):
-                        print(f"{i}. {p.name} ({len(p.tasks)} tasks)")
-                        for j, t in enumerate(p.tasks, start=1):
-                            print(f"   {j}) {t.title} — {t.status}")
-
-                else:
-                    print("⚠️ Unknown command.")
-
-            except ValidationError as e:
-                print(f"❌ {e}")
-
+# ---------------------------------------------------------------------------
+# CLI Runner
+# ---------------------------------------------------------------------------
 
 def main(argv: Optional[List[str]] = None) -> int:
+    """CLI entry point function."""
+    load_dotenv()
     _ = argv or sys.argv[1:]
-    app = ToDoApp.from_env()
-    app.run()
+
+    max_projects = int(os.getenv("MAX_NUMBER_OF_PROJECT", "10"))
+    max_tasks = int(os.getenv("MAX_NUMBER_OF_TASK", "100"))
+    app = ToDoApp(max_projects, max_tasks)
+
+    print("📝 ToDoList CLI — Type 'new' to create a project, 'list' to view projects, or 'exit' to quit.")
+    while True:
+        command = input("\n> ").strip().lower()
+        if command in {"exit", "quit"}:
+            print("👋 Goodbye!")
+            break
+
+        if command == "new":
+            name = input("Project name: ").strip()
+            description = input("Description (optional): ").strip()
+            try:
+                project = app.create_project(name, description)
+                print(f"✅ Project created: [ID={project.id}] {project.name}")
+            except ValidationError as e:
+                print(f"❌ {e}")
+            continue
+
+        if command == "list":
+            projects = app.list_projects()
+            if not projects:
+                print("⚠️ No projects found.")
+            else:
+                print("\n📋 Projects:")
+                for p in projects:
+                    print(f"  ID={p.id} | Name='{p.name}' | Description='{p.description}' | Created={p.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
+            continue
+
+        print("⚠️ Unknown command. Try 'new', 'list', or 'exit'.")
+
     return 0
 
 
