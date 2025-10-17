@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import List, Optional
-import os
 import sys
-
-from dotenv import load_dotenv
 
 from todolist.data.models import Project, Task, Status
 from todolist.core.validation import ValidationError
+from todolist.core.config import load_config
 
 
 class ToDoApp:
@@ -160,13 +158,8 @@ class ToDoApp:
     # ---------------- Env Factory ----------------
     @staticmethod
     def from_env() -> ToDoApp:
-        load_dotenv()
-        try:
-            max_projects = int(os.getenv("MAX_NUMBER_OF_PROJECT", "10"))
-            max_tasks = int(os.getenv("MAX_NUMBER_OF_TASK", "100"))
-        except ValueError as exc:
-            raise ValidationError("Environment values must be integers.") from exc
-        return ToDoApp(max_projects, max_tasks)
+        cfg = load_config()
+        return ToDoApp(cfg.max_projects, cfg.max_tasks)
 
     # ---------------- CLI ----------------
     def run(self) -> None:
@@ -224,7 +217,7 @@ class ToDoApp:
                     print("🗑️ Task deleted.")
                 elif cmd == "status":
                     pid = int(input("Project ID: "))
-                    tid = inسسt(input("Task ID: "))
+                    tid = int(input("Task ID: "))
                     new_status = input("New status (todo/doing/done): ").strip().lower()
                     t = self.change_status(pid, tid, new_status)
                     print(f"🔄 Task '{t.title}' updated to '{t.status}'.")
