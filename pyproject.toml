@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "todolist-cli"
+version = "1.0.0"
+description = "A modular, in-memory ToDoList CLI built with Python and OOP."
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{ include = "todolist" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
