@@ -75,14 +75,22 @@ class ToDoApp:
         project = self._find_project(pid)
         if not project:
             raise ValidationError("Project not found.")
+
         if len(project.tasks) >= self._max_tasks:
             raise ValidationError("Task limit reached.")
-        if not title.strip():
-            raise ValidationError("Task title required.")
+
+        if ValidationError.is_blank(title):
+            raise ValidationError("Task title is required.")
+
+        if not (30 <= len(title) <= 150):
+            raise ValidationError("Task title must be between 30 and 150 characters.")
+
+        if len(description) > 150:
+            raise ValidationError("Task description must not exceed 150 characters.")
+
         if deadline:
             self._validate_date(deadline)
 
-        # local ID per project
         next_tid = len(project.tasks) + 1
         task = Task(
             id=next_tid,
@@ -117,6 +125,12 @@ class ToDoApp:
                 raise ValidationError("Invalid status.")
             task.status = new_status
 
+        if new_title and not (30 <= len(new_title) <= 150):
+            raise ValidationError("Task title must be between 30 and 150 characters.")
+
+        if new_description and len(new_description) > 150:
+            raise ValidationError("Task description must not exceed 150 characters.")
+
         task.title = new_title.strip() or task.title
         task.description = new_description.strip() or task.description
         task.deadline = new_deadline or task.deadline
@@ -131,7 +145,6 @@ class ToDoApp:
             raise ValidationError("Task not found.")
         project.tasks.remove(task)
 
-        # reindex task IDs inside this project
         for idx, t in enumerate(project.tasks, start=1):
             t.id = idx
 
