@@ -19,7 +19,6 @@ Status = Literal["todo", "doing", "done"]
 # -----------------------------------------------------------------------------
 @dataclass
 class Task:
-    """Represents a task within a project."""
     title: str
     description: str = ""
     status: Status = "todo"
@@ -27,7 +26,6 @@ class Task:
 
 @dataclass
 class Project:
-    """Represents a project that groups tasks."""
     name: str
     description: str = ""
     tasks: List[Task] = field(default_factory=list)
