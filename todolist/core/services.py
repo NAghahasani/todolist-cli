@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import List, Optional
-import sys
 
 from todolist.data.models import Project, Task, Status
 from todolist.core.validation import ValidationError
@@ -100,6 +99,7 @@ class ToDoApp:
         new_title: str,
         new_description: str,
         new_deadline: Optional[str],
+        new_status: Optional[str] = None,
     ) -> Task:
         project = self._find_project(pid)
         if not project:
@@ -107,8 +107,15 @@ class ToDoApp:
         task = self._find_task(project, tid)
         if not task:
             raise ValidationError("Task not found.")
+
         if new_deadline:
             self._validate_date(new_deadline)
+
+        if new_status:
+            if new_status not in ["todo", "doing", "done"]:
+                raise ValidationError("Invalid status.")
+            task.status = new_status
+
         task.title = new_title.strip() or task.title
         task.description = new_description.strip() or task.description
         task.deadline = new_deadline or task.deadline
@@ -208,8 +215,9 @@ class ToDoApp:
                     new_title = input("New title (leave empty to keep): ")
                     new_desc = input("New description: ")
                     new_deadline = input("New deadline (YYYY-MM-DD, optional): ").strip() or None
-                    t = self.edit_task(pid, tid, new_title, new_desc, new_deadline)
-                    print(f"✏️ Task '{t.title}' updated.")
+                    new_status = input("New status (todo/doing/done, leave empty to keep): ").strip().lower() or None
+                    t = self.edit_task(pid, tid, new_title, new_desc, new_deadline, new_status)
+                    print(f"✏️ Task '{t.title}' updated. Current status: {t.status}")
                 elif cmd == "deletet":
                     pid = int(input("Project ID: "))
                     tid = int(input("Task ID: "))
