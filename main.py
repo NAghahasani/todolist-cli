@@ -1,10 +1,10 @@
-from todolist.data.models import Project, Task, Status
-from todolist.core.validation import ValidationError, AppError
+from todolist.core.services import ToDoApp
 
 
 def main() -> None:
-    """Entry point of the application."""
-    print("ToDoList CLI – modular refactor in progress.")
+    """Application entry point."""
+    app = ToDoApp.from_env()
+    app.run()
 
 
 if __name__ == "__main__":
