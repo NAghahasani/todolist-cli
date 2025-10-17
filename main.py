@@ -1,4 +1,4 @@
-"""CLI ToDoList – Feature: Change Task Status (Complete)."""
+"""CLI ToDoList – Feature: Delete Task (Complete)."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -69,6 +69,7 @@ class ToDoApp:
         return next((p for p in self._projects if p.name.lower() == name.lower()), None)
 
     def delete_project(self, name: str) -> None:
+        """Deletes a project and all its associated tasks (Cascade Delete)."""
         project = self._find_project(name)
         if not project:
             raise ValidationError(f"Project '{name}' not found.")
@@ -93,6 +94,7 @@ class ToDoApp:
         return task
 
     def delete_task(self, project_name: str, task_title: str) -> None:
+        """Deletes a task by title within a specific project."""
         project = self._find_project(project_name)
         if not project:
             raise ValidationError(f"Project '{project_name}' not found.")
@@ -101,18 +103,10 @@ class ToDoApp:
             raise ValidationError(f"Task '{task_title}' not found in project '{project_name}'.")
         project.tasks.remove(task)
 
-    def change_task_status(self, project_name: str, task_title: str, new_status: Status) -> Task:
-        """Change the status of a specific task."""
-        project = self._find_project(project_name)
-        if not project:
-            raise ValidationError(f"Project '{project_name}' not found.")
-        task = next((t for t in project.tasks if t.title.lower() == task_title.strip().lower()), None)
-        if not task:
-            raise ValidationError(f"Task '{task_title}' not found in project '{project_name}'.")
-        if new_status not in ("todo", "doing", "done"):
-            raise ValidationError("Invalid status. Must be 'todo', 'doing', or 'done'.")
-        task.status = new_status
-        return task
+    # --------------------- HELPERS ---------------------
+
+    def _find_project(self, name: str) -> Optional[Project]:
+        return next((p for p in self._projects if p.name.lower() == name.lower()), None)
 
     # --------------------- ENV FACTORY ---------------------
 
@@ -129,7 +123,7 @@ class ToDoApp:
     # --------------------- CLI ---------------------
 
     def run(self) -> None:
-        print("📝 ToDoList CLI — Commands: new, add, delete-task, change-status, list, exit.")
+        print("📝 ToDoList CLI — Commands: new, add, delete-task, list, exit.")
 
         while True:
             command = input("\n> ").strip().lower()
@@ -157,13 +151,6 @@ class ToDoApp:
                     title = input("Task title to delete: ").strip()
                     self.delete_task(proj, title)
                     print(f"🗑️ Task '{title}' deleted from project '{proj}'")
-
-                elif command == "change-status":
-                    proj = input("Project name: ").strip()
-                    title = input("Task title: ").strip()
-                    new_status = input("New status (todo/doing/done): ").strip().lower()
-                    updated = self.change_task_status(proj, title, new_status)
-                    print(f"🔄 Task '{updated.title}' status updated to [{updated.status}]")
 
                 elif command == "list":
                     projects = self.list_projects()
