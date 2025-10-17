@@ -1,4 +1,4 @@
-"""CLI ToDoList – Phase 1 (In-Memory, Single File)."""
+"""CLI ToDoList – Full Refactored Version (All Features Integrated)"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Literal, Optional
@@ -14,6 +14,9 @@ Status = Literal["todo", "doing", "done"]
 # Data Models
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Data Models
+# ---------------------------------------------------------------------------
 @dataclass
 class Task:
     """Represents a task within a project."""
@@ -21,7 +24,6 @@ class Task:
     title: str
     description: str = ""
     status: Status = "todo"
-    created_at: datetime = field(default_factory=datetime.now)
 
 
 @dataclass
@@ -31,7 +33,6 @@ class Project:
     name: str
     description: str = ""
     tasks: List[Task] = field(default_factory=list)
-    created_at: datetime = field(default_factory=datetime.now)
 
 
 # ---------------------------------------------------------------------------
@@ -50,7 +51,7 @@ class ValidationError(AppError):
     DESC_MAX_LEN = 200
 
     @staticmethod
-    def _is_blank(value: str) -> bool:
+    def is_blank(value: str) -> bool:
         return not value or not value.strip()
 
 
@@ -75,8 +76,10 @@ class ToDoApp:
     def create_project(self, name: str, description: str = "") -> Project:
         if len(self._projects) >= self._max_projects:
             raise ValidationError("Project limit reached.")
-        if ValidationError._is_blank(name):
+
+        if ValidationError.is_blank(name):
             raise ValidationError("Project name is required.")
+
         if not (ValidationError.NAME_MIN_LEN <= len(name) <= ValidationError.NAME_MAX_LEN):
             raise ValidationError("Invalid project name length.")
         for project in self._projects:
@@ -163,6 +166,7 @@ class ToDoApp:
             raise ValidationError("Environment values must be integers.") from exc
         return ToDoApp(max_projects=max_projects, max_tasks=max_tasks)
 
+    # --------------------------- TASK MANAGEMENT --------------------------
 
 # ---------------------------------------------------------------------------
 # ENTRY POINT
