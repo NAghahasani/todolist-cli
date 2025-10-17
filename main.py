@@ -65,6 +65,9 @@ class ToDoApp:
         self._projects.append(project)
         return project
 
+    def _find_project(self, name: str) -> Optional[Project]:
+        return next((p for p in self._projects if p.name.lower() == name.lower()), None)
+
     def delete_project(self, name: str) -> None:
         """Deletes a project and all its associated tasks (Cascade Delete)."""
         project = self._find_project(name)
