@@ -25,8 +25,11 @@ class ToDoApp:
         if ValidationError.is_blank(name):
             raise ValidationError("Project name is required.")
 
-        if not (ValidationError.NAME_MIN_LEN <= len(name) <= ValidationError.NAME_MAX_LEN):
-            raise ValidationError("Invalid project name length.")
+        if len(name.strip()) > 30:
+            raise ValidationError("Project name must be less than 30 characters.")
+
+        if len(description.strip()) > 150:
+            raise ValidationError("Project description must be less than 150 characters.")
 
         for project in self._projects:
             if project.name.strip().lower() == name.strip().lower():
@@ -50,7 +53,12 @@ class ToDoApp:
             raise ValidationError("Project name already exists.")
 
         if new_name:
+            if len(new_name.strip()) > 30:
+                raise ValidationError("Project name must be less than 30 characters.")
             project.name = new_name.strip()
+
+        if len(new_description.strip()) > 150:
+            raise ValidationError("Project description must be less than 150 characters.")
 
         project.description = new_description.strip()
         return project
@@ -82,11 +90,11 @@ class ToDoApp:
         if ValidationError.is_blank(title):
             raise ValidationError("Task title is required.")
 
-        if not (30 <= len(title) <= 150):
-            raise ValidationError("Task title must be between 30 and 150 characters.")
+        if len(title.strip()) > 30:
+            raise ValidationError("Task title must be less than 30 characters.")
 
-        if len(description) > 150:
-            raise ValidationError("Task description must not exceed 150 characters.")
+        if len(description.strip()) > 150:
+            raise ValidationError("Task description must be less than 150 characters.")
 
         if deadline:
             self._validate_date(deadline)
@@ -125,13 +133,14 @@ class ToDoApp:
                 raise ValidationError("Invalid status.")
             task.status = new_status
 
-        if new_title and not (30 <= len(new_title) <= 150):
-            raise ValidationError("Task title must be between 30 and 150 characters.")
+        if new_title:
+            if len(new_title.strip()) > 30:
+                raise ValidationError("Task title must be less than 30 characters.")
+            task.title = new_title.strip() or task.title
 
-        if new_description and len(new_description) > 150:
-            raise ValidationError("Task description must not exceed 150 characters.")
+        if len(new_description.strip()) > 150:
+            raise ValidationError("Task description must be less than 150 characters.")
 
-        task.title = new_title.strip() or task.title
         task.description = new_description.strip() or task.description
         task.deadline = new_deadline or task.deadline
         return task
@@ -145,6 +154,7 @@ class ToDoApp:
             raise ValidationError("Task not found.")
         project.tasks.remove(task)
 
+        # reindex task IDs after deletion
         for idx, t in enumerate(project.tasks, start=1):
             t.id = idx
 
