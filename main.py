@@ -1,4 +1,5 @@
-"""ToDoList CLI – Full In-Memory Version."""
+"""CLI ToDoList – Full Refactored Version (All Features Integrated)"""
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Literal, Optional
@@ -9,8 +10,10 @@ import sys
 
 Status = Literal["todo", "doing", "done"]
 
+# ---------------------------------------------------------------------------
+# Data Models
+# ---------------------------------------------------------------------------
 
-# ---------------- Models ----------------
 @dataclass
 class Task:
     id: int
@@ -28,16 +31,31 @@ class Project:
     tasks: List[Task] = field(default_factory=list)
 
 
-# ---------------- Errors ----------------
+# ---------------------------------------------------------------------------
+# Errors
+# ---------------------------------------------------------------------------
+
 class AppError(Exception):
+    """Base application error."""
     pass
 
 
 class ValidationError(AppError):
-    pass
+    """Raised when input validation fails."""
+
+    NAME_MIN_LEN = 1
+    NAME_MAX_LEN = 50
+    DESC_MAX_LEN = 200
+
+    @staticmethod
+    def is_blank(value: str) -> bool:
+        return not value or not value.strip()
 
 
-# ---------------- Application ----------------
+# ---------------------------------------------------------------------------
+# Application
+# ---------------------------------------------------------------------------
+
 class ToDoApp:
     def __init__(self, max_projects: int, max_tasks: int) -> None:
         self._projects: List[Project] = []
@@ -50,11 +68,22 @@ class ToDoApp:
     def create_project(self, name: str, description: str = "") -> Project:
         if len(self._projects) >= self._max_projects:
             raise ValidationError("Project limit reached.")
-        if not name.strip():
-            raise ValidationError("Project name required.")
-        if any(p.name.lower() == name.lower() for p in self._projects):
-            raise ValidationError("Project name must be unique.")
-        project = Project(id=self._next_pid, name=name.strip(), description=description.strip())
+
+        if ValidationError.is_blank(name):
+            raise ValidationError("Project name is required.")
+
+        if not (ValidationError.NAME_MIN_LEN <= len(name) <= ValidationError.NAME_MAX_LEN):
+            raise ValidationError("Invalid project name length.")
+
+        for project in self._projects:
+            if project.name.strip().lower() == name.strip().lower():
+                raise ValidationError("Project name must be unique.")
+
+        project = Project(
+            id=self._next_pid,
+            name=name.strip(),
+            description=description.strip(),
+        )
         self._projects.append(project)
         self._next_pid += 1
         return project
@@ -63,10 +92,13 @@ class ToDoApp:
         project = self._find_project(pid)
         if not project:
             raise ValidationError("Project not found.")
+
         if new_name and any(p.name.lower() == new_name.lower() and p.id != pid for p in self._projects):
             raise ValidationError("Project name already exists.")
+
         if new_name:
             project.name = new_name.strip()
+
         project.description = new_description.strip()
         return project
 
@@ -242,7 +274,7 @@ class ToDoApp:
                             print(f"  [{t.id}] {t.title} — {t.status} | {t.description} | Deadline: {t.deadline or '-'}")
 
                 else:
-                    print("⚠️ Unknown command.")
+                    print("⚠️ Unknown command. Try again.")
 
             except ValidationError as e:
                 print(f"❌ {e}")
@@ -250,7 +282,10 @@ class ToDoApp:
                 print("❌ Invalid input. Use numeric IDs.")
 
 
-# ---------------- Entry Point ----------------
+# ---------------------------------------------------------------------------
+# Entry Point
+# ---------------------------------------------------------------------------
+
 def main(argv: Optional[List[str]] = None) -> int:
     _ = argv or sys.argv[1:]
     app = ToDoApp.from_env()
