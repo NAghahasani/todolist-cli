@@ -16,7 +16,6 @@ class ToDoApp:
         self._max_projects = max_projects
         self._max_tasks = max_tasks
         self._next_pid = 1
-        self._next_tid = 1
 
     # ---------------- Project Operations ----------------
     def create_project(self, name: str, description: str = "") -> Project:
@@ -82,14 +81,16 @@ class ToDoApp:
             raise ValidationError("Task title required.")
         if deadline:
             self._validate_date(deadline)
+
+        # local ID per project
+        next_tid = len(project.tasks) + 1
         task = Task(
-            id=self._next_tid,
+            id=next_tid,
             title=title.strip(),
             description=description.strip(),
             deadline=deadline,
         )
         project.tasks.append(task)
-        self._next_tid += 1
         return task
 
     def edit_task(
@@ -129,6 +130,10 @@ class ToDoApp:
         if not task:
             raise ValidationError("Task not found.")
         project.tasks.remove(task)
+
+        # reindex task IDs inside this project
+        for idx, t in enumerate(project.tasks, start=1):
+            t.id = idx
 
     def change_status(self, pid: int, tid: int, new_status: Status) -> Task:
         project = self._find_project(pid)
