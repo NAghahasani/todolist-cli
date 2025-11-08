@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from todolist.app import ProjectRepository
-from todolist.app.models.project import Project
+from todolist.app.repositories.project_repository import ProjectRepository
+from todolist.app.models.models import Project
+
 
 class ProjectService:
     def __init__(self, db: Session):
