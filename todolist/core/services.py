@@ -2,7 +2,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 from todolist.app.models.models import Status
-from todolist.core.validation import ValidationError
+from todolist.app.exceptions.errors import ValidationError
 from todolist.app.services.project_service import ProjectService
 from todolist.app.services.task_service import TaskService
 
