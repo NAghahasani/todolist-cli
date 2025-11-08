@@ -1,35 +1,47 @@
-import sys, os
-
-project_root = os.path.dirname(os.path.abspath(__file__))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
-todolist_root = os.path.join(project_root, "todolist")
-if todolist_root not in sys.path:
-    sys.path.insert(0, todolist_root)
 from todolist.app.db.session import SessionLocal
 from todolist.app.services.project_service import ProjectService
-from todolist.app.services.task_service import TaskService
-from todolist.core.services import ToDoApp
-from todolist.core.config import load_config
+import sys
 
 
-def main() -> None:
-    """Application entry point (Phase 2 with Database)."""
-
-    # Load configuration
-    cfg = load_config()
-
-    # Initialize database session
+def main():
     db = SessionLocal()
+    service = ProjectService(db)
 
-    # Initialize services (now connected to PostgreSQL)
-    project_service = ProjectService(db)
-    task_service = TaskService(db)
+    if len(sys.argv) < 2:
+        print("Usage: python main.py [command] [arguments]")
+        print("Commands: create_project <name> [description], list_projects, delete_project <id>")
+        return
 
-    # Pass services into the app
-    app = ToDoApp(cfg.max_projects, cfg.max_tasks, project_service, task_service)
-    app.run()
+    command = sys.argv[1]
+
+    if command == "create_project":
+        if len(sys.argv) < 3:
+            print("Project name required.")
+            return
+        name = sys.argv[2]
+        description = sys.argv[3] if len(sys.argv) > 3 else ""
+        service.create_project(name, description)
+        print(f"✅ Project '{name}' created successfully.")
+
+    elif command == "list_projects":
+        projects = service.list_projects()
+        if not projects:
+            print("No projects found.")
+        else:
+            print("📋 Projects:")
+            for p in projects:
+                print(f"- ({p.id}) {p.name}: {p.description}")
+
+    elif command == "delete_project":
+        if len(sys.argv) < 3:
+            print("Project ID required.")
+            return
+        project_id = int(sys.argv[2])
+        service.delete_project(project_id)
+        print(f"🗑️ Project {project_id} deleted successfully.")
+
+    else:
+        print("Unknown command.")
 
 
 if __name__ == "__main__":
