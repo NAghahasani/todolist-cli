@@ -27,8 +27,8 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Import Base and models so Alembic detects metadata
-from app.db.base import Base
-from app.models import *  # noqa
+from todolist.app.db.base import Base
+from todolist.app import *  # noqa
 
 # Set target metadata for autogenerate
 target_metadata = Base.metadata

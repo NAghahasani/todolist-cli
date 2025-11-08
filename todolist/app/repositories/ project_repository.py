@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.project import Project
+from todolist.app.models.project import Project
 
 class ProjectRepository:
     def __init__(self, db: Session):

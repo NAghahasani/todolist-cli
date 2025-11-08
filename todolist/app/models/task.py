@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy import Integer, String, Text, Date, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db.base import Base
+from todolist.app.db.base import Base
 
 class Task(Base):
     __tablename__ = "tasks"

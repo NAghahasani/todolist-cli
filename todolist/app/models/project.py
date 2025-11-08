@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy import Integer, String, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db.base import Base
+from todolist.app.db.base import Base
 
 class Project(Base):
     __tablename__ = "projects"

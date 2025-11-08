@@ -4,7 +4,10 @@ version = "1.0.0"
 description = "A modular, in-memory ToDoList CLI built with Python and OOP."
 authors = ["Your Name <your.email@example.com>"]
 readme = "README.md"
-packages = [{ include = "todolist" }]
+packages = [
+    { include = "app" },
+    { include = "todolist" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
