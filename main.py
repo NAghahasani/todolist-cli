@@ -1,3 +1,12 @@
+import sys, os
+
+project_root = os.path.dirname(os.path.abspath(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+todolist_root = os.path.join(project_root, "todolist")
+if todolist_root not in sys.path:
+    sys.path.insert(0, todolist_root)
 from todolist.app.db.session import SessionLocal
 from todolist.app.services.project_service import ProjectService
 from todolist.app.services.task_service import TaskService

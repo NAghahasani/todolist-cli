@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from todolist.app.repositories.task_repository import TaskRepository
+from todolist.app.repositories import TaskRepository
 from todolist.app.models.models import Task
 
 class TaskService:

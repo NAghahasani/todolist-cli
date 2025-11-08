@@ -3,6 +3,7 @@ from todolist.app.models.models import Project
 
 class ProjectRepository:
     """Repository for Project entity."""
+
     def __init__(self, db: Session):
         self.db = db
 

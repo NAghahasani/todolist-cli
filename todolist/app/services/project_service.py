@@ -3,6 +3,7 @@ from todolist.app.repositories.project_repository import ProjectRepository
 from todolist.app.models.models import Project
 
 
+
 class ProjectService:
     def __init__(self, db: Session):
         self.repo = ProjectRepository(db)
