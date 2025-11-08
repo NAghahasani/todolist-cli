@@ -1,5 +1,6 @@
 from todolist.app.db.session import SessionLocal
 from todolist.app.services.project_service import ProjectService
+from todolist.app.tasks.autoclose import autoclose_overdue_tasks
 import sys
 
 
@@ -9,7 +10,7 @@ def main():
 
     if len(sys.argv) < 2:
         print("Usage: python main.py [command] [arguments]")
-        print("Commands: create_project <name> [description], list_projects, delete_project <id>")
+        print("Commands: create_project <name> [description], list_projects, delete_project <id>, autoclose_tasks")
         return
 
     command = sys.argv[1]
@@ -39,6 +40,10 @@ def main():
         project_id = int(sys.argv[2])
         service.delete_project(project_id)
         print(f"🗑️ Project {project_id} deleted successfully.")
+
+    elif command == "autoclose_tasks":
+        print("Running scheduled task: autoclose overdue tasks...")
+        autoclose_overdue_tasks()
 
     else:
         print("Unknown command.")
