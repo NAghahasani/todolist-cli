@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from todolist.app.repositories import TaskRepository
-from todolist.app.models.models import Task
+from todolist.app.models import Task, Status
 
 class TaskService:
     def __init__(self, db: Session):

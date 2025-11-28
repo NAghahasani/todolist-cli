@@ -1,6 +1,6 @@
 import schedule
 import time
-from todolist.app.tasks.autoclose import autoclose_overdue_tasks
+from todolist.app.commands.autoclose import autoclose_overdue_tasks
 
 
 schedule.every(15).minutes.do(autoclose_overdue_tasks)

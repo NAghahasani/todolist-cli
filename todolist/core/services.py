@@ -8,7 +8,7 @@ from todolist.app.services.task_service import TaskService
 
 
 class ToDoApp:
-    """Core application logic for managing projects and tasks (Phase 2: Database-backed)."""
+    """Core application logic for managing projects and commands (Phase 2: Database-backed)."""
 
     def __init__(
         self,
@@ -158,7 +158,7 @@ class ToDoApp:
                         "  new                     - create a project\n"
                         "  editp                   - edit a project\n"
                         "  deletep                 - delete a project\n"
-                        "  tasks                   - list tasks for a project\n"
+                        "  commands                   - list commands for a project\n"
                         "  add                     - add a task\n"
                         "  editt                   - edit a task\n"
                         "  deletet                 - delete a task\n"
@@ -213,11 +213,11 @@ class ToDoApp:
                     st = input("New status (todo/doing/done): ").strip()
                     self.move_task(pid, tid, st)
                     print("➡️ Task moved.")
-                elif cmd == "tasks":
+                elif cmd == "commands":
                     pid = int(input("Project ID: "))
                     tasks = self.list_tasks(pid)
                     if not tasks:
-                        print("⚠️ No tasks found.")
+                        print("⚠️ No commands found.")
                     else:
                         print(f"\n📋 Tasks for Project {pid}:")
                         for t in tasks:

@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 from todolist.app.db.session import SessionLocal
 from todolist.app.repositories.task_repository import TaskRepository
-from todolist.app.models.models import Status
+from todolist.app.models import Status
+
 
 
 
 def autoclose_overdue_tasks() -> None:
-    """Automatically close overdue tasks."""
+    """Automatically close overdue commands."""
     db = SessionLocal()
     repo = TaskRepository(db)
 
@@ -20,6 +21,6 @@ def autoclose_overdue_tasks() -> None:
             closed_count += 1
 
     db.commit()
-    print(f"✅ {closed_count} overdue tasks automatically closed at {now.isoformat()}")
+    print(f"✅ {closed_count} overdue commands automatically closed at {now.isoformat()}")
 
     db.close()

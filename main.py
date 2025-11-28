@@ -1,6 +1,6 @@
 from todolist.app.db.session import SessionLocal
 from todolist.app.services.project_service import ProjectService
-from todolist.app.tasks.autoclose import autoclose_overdue_tasks
+from todolist.app.commands.autoclose import autoclose_overdue_tasks
 import sys
 
 
@@ -42,7 +42,7 @@ def main():
         print(f"🗑️ Project {project_id} deleted successfully.")
 
     elif command == "autoclose_tasks":
-        print("Running scheduled task: autoclose overdue tasks...")
+        print("Running scheduled task: autoclose overdue commands...")
         autoclose_overdue_tasks()
 
     else:

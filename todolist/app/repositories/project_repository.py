@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from todolist.app.models.models import Project
+from todolist.app.models import Project
 
 class ProjectRepository:
     """Repository for Project entity."""

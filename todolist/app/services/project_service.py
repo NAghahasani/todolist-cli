@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from todolist.app.repositories.project_repository import ProjectRepository
-from todolist.app.models.models import Project
+from todolist.app.models import Project
 
 
 
