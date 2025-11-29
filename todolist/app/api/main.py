@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from todolist.app.api.routes import projects
+
 
 def create_app() -> FastAPI:
-    """Create and configure FastAPI application instance."""
     app = FastAPI(
         title="ToDoList API",
         version="0.1.0",
     )
 
-    # TODO: include routers here later (projects, tasks, ...)
+    app.include_router(projects.router)
+
     return app
 
 
