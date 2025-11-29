@@ -31,6 +31,30 @@ def list_tasks(
     return [TaskRead.model_validate(t) for t in tasks]
 
 
+@router.get("/{task_id}", response_model=TaskRead)
+def get_task(
+    project_id: int,
+    task_id: int,
+    db: Session = Depends(get_db),
+) -> TaskRead:
+    project_svc = ProjectService(db)
+    if project_svc.get_project(project_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    task_svc = TaskService(db)
+    task = task_svc.get_task(project_id=project_id, task_id=task_id)
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found",
+        )
+
+    return TaskRead.model_validate(task)
+
+
 @router.post(
     "/",
     response_model=TaskRead,
@@ -64,3 +88,30 @@ def create_task(
         ) from exc
 
     return TaskRead.model_validate(task)
+
+
+@router.delete(
+    "/{task_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_task(
+    project_id: int,
+    task_id: int,
+    db: Session = Depends(get_db),
+) -> None:
+    project_svc = ProjectService(db)
+    if project_svc.get_project(project_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    task_svc = TaskService(db)
+    task = task_svc.get_task(project_id=project_id, task_id=task_id)
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found",
+        )
+
+    task_svc.delete_task(project_id=project_id, task_id=task_id)
