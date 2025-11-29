@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -14,6 +16,26 @@ class ProjectCreate(ProjectBase):
 
 class ProjectRead(ProjectBase):
     id: int
+
+    class Config:
+        from_attributes = True
+
+
+class TaskBase(BaseModel):
+    title: str = Field(min_length=1, max_length=50)
+    description: str | None = Field(default=None, max_length=255)
+    status: str = Field(default="TODO")
+    deadline: datetime | None = None
+
+
+class TaskCreate(TaskBase):
+    pass
+
+
+class TaskRead(TaskBase):
+    id: int
+    project_id: int
+    created_at: datetime | None = None
 
     class Config:
         from_attributes = True

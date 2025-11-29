@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from todolist.app.api.routes import projects
+from todolist.app.api.routes import projects, tasks
 
 
 def create_app() -> FastAPI:
@@ -12,6 +12,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(projects.router)
+    app.include_router(tasks.router)
 
     return app
 
