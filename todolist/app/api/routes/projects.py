@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from todolist.app.api.dependencies import get_db
-from todolist.app.api.schemas import ProjectRead
+from todolist.app.api.schemas import ProjectCreate, ProjectRead
 from todolist.app.services.project_service import ProjectService
 
 router = APIRouter(
@@ -15,10 +15,30 @@ router = APIRouter(
 
 @router.get("/", response_model=list[ProjectRead])
 def list_projects(db: Session = Depends(get_db)) -> list[ProjectRead]:
-    """Return all projects."""
     service = ProjectService(db)
     projects = service.list_projects()
-    return [
-        ProjectRead(id=p.id, name=p.name, description=p.description)
-        for p in projects
-    ]
+    return [ProjectRead.model_validate(p) for p in projects]
+
+
+@router.post(
+    "/",
+    response_model=ProjectRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_project(
+    payload: ProjectCreate,
+    db: Session = Depends(get_db),
+) -> ProjectRead:
+    service = ProjectService(db)
+    try:
+        project = service.create_project(
+            name=payload.name,
+            description=payload.description or "",
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+
+    return ProjectRead.model_validate(project)
