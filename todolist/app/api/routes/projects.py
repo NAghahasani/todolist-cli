@@ -20,6 +20,22 @@ def list_projects(db: Session = Depends(get_db)) -> list[ProjectRead]:
     return [ProjectRead.model_validate(p) for p in projects]
 
 
+@router.get("/{project_id}", response_model=ProjectRead)
+def get_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+) -> ProjectRead:
+    service = ProjectService(db)
+    project = service.get_project(project_id)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    return ProjectRead.model_validate(project)
+
+
 @router.post(
     "/",
     response_model=ProjectRead,
