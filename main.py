@@ -1,3 +1,10 @@
+"""
+Command-line interface (CLI) for the ToDoList application.
+
+Deprecated:
+    The primary interface of the project is now the FastAPI Web API.
+    This CLI is kept only for backward compatibility and educational purposes.
+"""
 from todolist.app.db.session import SessionLocal
 from todolist.app.services.project_service import ProjectService
 from todolist.app.commands.autoclose import autoclose_overdue_tasks
@@ -5,6 +12,7 @@ import sys
 
 
 def main():
+    """Entry point for the deprecated CLI interface."""
     print(
         "WARNING: This CLI interface is deprecated. "
         "Please use the FastAPI Web API instead."
