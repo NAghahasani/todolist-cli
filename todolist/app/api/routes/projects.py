@@ -42,3 +42,22 @@ def create_project(
         ) from exc
 
     return ProjectRead.model_validate(project)
+
+
+@router.delete(
+    "/{project_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+) -> None:
+    service = ProjectService(db)
+    project = service.get_project(project_id)
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    service.delete_project(project_id)
