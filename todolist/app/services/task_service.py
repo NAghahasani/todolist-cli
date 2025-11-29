@@ -17,13 +17,19 @@ class TaskService:
         self.project_repo = ProjectRepository(db)
         self.config = load_config()
 
+    # -------------------------
+    # Query helpers
+    # -------------------------
+
     def list_tasks(self, project_id: int) -> list[Task]:
         return self.get_by_project(project_id)
 
     def get_by_project(self, project_id: int) -> list[Task]:
         try:
+            # اگر ریپازیتوری متد مخصوص داشته باشد
             return self.repo.get_by_project(project_id)  # type: ignore[attr-defined]
         except AttributeError:
+            # در غیر این صورت مستقیم از سشن استفاده می‌کنیم
             return (
                 self.db.query(Task)
                 .filter(Task.project_id == project_id)
@@ -37,6 +43,10 @@ class TaskService:
             .filter(Task.project_id == project_id)
             .count()
         )
+
+    # -------------------------
+    # Create
+    # -------------------------
 
     def create(
         self,
@@ -85,6 +95,10 @@ class TaskService:
         self.db.refresh(task)
         return task
 
+    # -------------------------
+    # Read
+    # -------------------------
+
     def get_by_id(self, task_id: int) -> Optional[Task]:
         return self.repo.get_by_id(task_id)
 
@@ -94,7 +108,16 @@ class TaskService:
             return None
         return task
 
-    def update_task_status(self, project_id: int, task_id: int, new_status: str) -> Task:
+    # -------------------------
+    # Update
+    # -------------------------
+
+    def update_task_status(
+        self,
+        project_id: int,
+        task_id: int,
+        new_status: str,
+    ) -> Task:
         try:
             status_enum = Status(new_status)
         except ValueError:
@@ -108,6 +131,42 @@ class TaskService:
         self.db.commit()
         self.db.refresh(task)
         return task
+
+    def update_task(
+        self,
+        project_id: int,
+        task_id: int,
+        title: str | None = None,
+        description: str | None = None,
+        status: str | None = None,
+        deadline=None,
+    ) -> Task:
+        task = self.get_task(project_id, task_id)
+        if task is None:
+            raise ValueError("Task not found")
+
+        if title is not None:
+            task.title = title
+
+        if description is not None:
+            task.description = description
+
+        if deadline is not None:
+            task.deadline = deadline
+
+        if status is not None:
+            try:
+                task.status = Status(status)
+            except ValueError:
+                raise ValueError("Invalid status value")
+
+        self.db.commit()
+        self.db.refresh(task)
+        return task
+
+    # -------------------------
+    # Delete
+    # -------------------------
 
     def delete(self, task_id: int) -> bool:
         return self.repo.delete(task_id)

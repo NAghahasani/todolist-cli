@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from todolist.app.api.dependencies import get_db
-from todolist.app.api.schemas import TaskCreate, TaskRead
+from todolist.app.api.schemas import TaskCreate, TaskRead, TaskUpdate
 from todolist.app.services.project_service import ProjectService
 from todolist.app.services.task_service import TaskService
 
@@ -46,7 +46,11 @@ def get_task(
     return TaskRead.model_validate(task)
 
 
-@router.post("/", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=TaskRead,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_task(
     project_id: int,
     payload: TaskCreate,
@@ -67,6 +71,33 @@ def create_task(
         )
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    return TaskRead.model_validate(task)
+
+
+@router.patch("/{task_id}", response_model=TaskRead)
+def update_task(
+    project_id: int,
+    task_id: int,
+    payload: TaskUpdate,
+    db: Session = Depends(get_db),
+) -> TaskRead:
+    project_svc = ProjectService(db)
+    if project_svc.get_project(project_id) is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    task_svc = TaskService(db)
+    try:
+        task = task_svc.update_task(
+            project_id=project_id,
+            task_id=task_id,
+            title=payload.title,
+            description=payload.description,
+            status=payload.status,
+            deadline=payload.deadline,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return TaskRead.model_validate(task)
 
