@@ -22,10 +22,8 @@ class TaskService:
 
     def get_by_project(self, project_id: int) -> list[Task]:
         try:
-            # If repository has a dedicated method
             return self.repo.get_by_project(project_id)  # type: ignore[attr-defined]
         except AttributeError:
-            # Fallback: query directly
             return (
                 self.db.query(Task)
                 .filter(Task.project_id == project_id)
@@ -96,8 +94,20 @@ class TaskService:
             return None
         return task
 
-    def update_task_status(self, task_id: int, new_status: Status) -> Optional[Task]:
-        return self.repo.update_status(task_id, new_status)
+    def update_task_status(self, project_id: int, task_id: int, new_status: str) -> Task:
+        try:
+            status_enum = Status(new_status)
+        except ValueError:
+            raise ValueError("Invalid status value")
+
+        task = self.get_task(project_id, task_id)
+        if task is None:
+            raise ValueError("Task not found")
+
+        task.status = status_enum
+        self.db.commit()
+        self.db.refresh(task)
+        return task
 
     def delete(self, task_id: int) -> bool:
         return self.repo.delete(task_id)
