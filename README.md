@@ -1,122 +1,146 @@
-# 🧱 ToDoList CLI (Phase 1 – In-Memory, Modular, OOP)
+ToDoList – Web API (FastAPI + PostgreSQL)
 
-A command-line ToDo list application built with Python, focusing on clean **OOP architecture**, **in-memory data management**, and strict adherence to project coding conventions.
+This project is a fully modular To-Do List backend.
+In Phase 3, the project becomes a full Web API using FastAPI and PostgreSQL.
+The old CLI (Phases 1 & 2) still exists but is deprecated.
 
----
+✔ Main Features
 
-## 📦 Features
+Project management (create, list, get, delete)
 
-### ✅ Core Functionalities
-- **Project Management**
-  - Create, edit, delete, and list projects.
-  - Each project has a unique name and an auto-incremented ID.
-- **Task Management**
-  - Add, edit, delete, and list tasks for each project.
-  - Task IDs are **local per project** (start from 1 for each project).
-  - Edit task title, description, deadline, and status.
-  - Change task status separately.
-- **Cascade Delete**
-  - Deleting a project removes all related tasks.
-- **Validation**
-  - Enforces naming rules, description length, and valid date formats.
-  - Raises clear `ValidationError` messages on invalid input.
-- **Environment Configuration**
-  - Reads task/project limits from `.env`:
-    ```
-    MAX_NUMBER_OF_PROJECT=10
-    MAX_NUMBER_OF_TASK=100
-    ```
+Task management (create, list, get, update, delete)
 
----
+Status workflow: TODO → IN_PROGRESS → DONE
 
-## 🧩 Architecture Overview
+Validation for names, descriptions, dates, statuses
 
-Project follows a modular structure:
-
-todolist-cli/
+Configurable limits via .env
+Architecture Overview
+todolist/
 │
-├── todolist/
-│ ├── data/
-│ │ └── models.py # Data models (Project, Task)
-│ │
-│ ├── core/
-│ │ ├── config.py # Env config loader
-│ │ ├── services.py # Main business logic (ToDoApp)
-│ │ └── validation.py # Validation and custom exceptions
-│ │
-│ └── cli/
-│ └── app.py # CLI interface (future extension)
+├── app/
+│   ├── api/
+│   │   ├── routes/       # FastAPI route definitions
+│   │   ├── schemas.py    # Pydantic schemas
+│   │   └── main.py       # FastAPI entry point
+│   │
+│   ├── services/         # Business logic layer
+│   ├── repositories/     # Database access layer
+│   ├── models/           # SQLAlchemy ORM models
+│   └── db/               # Engine + session + Alembic setup
 │
-├── main.py # Entry point
-├── .env # Environment configuration
-├── .env.example # Example env file
+├── alembic/              # Migration scripts
+├── docker-compose.yml    # PostgreSQL container
+├── .env                  # Environment variables
+├── main.py               # Legacy CLI (deprecated)
 └── README.md
 
 
----
-
-## ⚙️ Run Instructions
-
-### Using Poetry
-```bash
+Architecture follows a clean layered structure:
+API → Service → Repository → Model → DB
+Installation & Setup
+1️⃣ Install dependencies
 poetry install
+
+2️⃣ Start PostgreSQL (Docker)
+docker compose up -d
+
+3️⃣ Apply migrations
+poetry run alembic upgrade head
+
+4️⃣ Run the FastAPI server
+poetry run uvicorn todolist.app.api.main:app --reload
+
+5️⃣ Open API documentation
+http://127.0.0.1:8000/docs
+Environment Variables
+
+Example .env file:
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASS=postgres
+DB_NAME=todolist
+
+MAX_NUMBER_OF_PROJECT=10
+MAX_NUMBER_OF_TASK=100
+
+
+These values control database connection and project/task limits.
+
+📌 Example API Requests
+Create a project
+POST /api/projects/
+{
+  "name": "Demo",
+  "description": "My project"
+}
+
+Create a task
+POST /api/projects/1/tasks/
+{
+  "title": "Implement backend",
+  "status": "TODO",
+  "deadline": "2025-12-20T10:00:00"
+}
+Update a task (partial update)
+PATCH /api/projects/1/tasks/3
+{
+  "status": "DONE"
+}
+
+Delete a task
+DELETE /api/projects/1/tasks/5
+
+🕹 Legacy CLI (Deprecated)
+
+The original CLI from earlier phases still works:
+
 poetry run python main.py
-CLI Commands
-Command	Description
-new	Create a new project
-editp	Edit project name or description
-deletep	Delete a project (cascade deletes tasks)
-list	List all projects
-add	Add a task to a project
-editt	Edit task title, description, deadline, or status
-deletet	Delete a task by ID (within the project)
-status	Change task status (todo, doing, done)
-tasks	List all tasks for a given project
-exit	Quit the application
 
-🧪 Example
-pgsql
-Copy code
-> new
-Project name: Demo
-Description (optional): test project
-✅ Project 'Demo' created (ID=1)
 
-> add
-Project ID: 1
-Task title: Write report
-Deadline (YYYY-MM-DD, optional): 2025-10-30
-🆕 Task 'Write report' (ID=1) added to project 1
+But on startup you will see:
 
-> tasks
-📋 Tasks for Project 1:
-  [1] Write report — todo | Deadline: 2025-10-30
+WARNING: CLI interface is deprecated. Please use the FastAPI Web API instead.
 
-> editt
-Project ID: 1
-Task ID: 1
-New title (leave empty to keep): Final report
-New status (todo/doing/done, leave empty to keep): done
-✏️ Task 'Final report' updated. Current status: done
 
-> exit
-👋 Goodbye!
-🧰 Development Notes
-Language: Python 3.12
+The CLI is no longer maintained.
+README – Section 6/6
+🧰 Technologies Used
 
-Dependency Manager: Poetry
+Python 3.12
 
-Coding Standards: PEP8 + project-specific conventions
+FastAPI
 
-Data Persistence: None (In-Memory only – Phase 2 will add JSON/SQLite)
+SQLAlchemy ORM
 
-Error Handling: Centralized via ValidationError and AppError
+Alembic
 
-🚀 Next Steps (Phase 2)
-Add persistence layer (JSON / SQLite)
+PostgreSQL
 
-Implement cli/app.py with argparse or click
+Docker
 
-Write unit tests with pytest
+Poetry
 
-Extend README with usage examples and developer guide
+Fully typed code (PEP 484)
+
+📈 Optional Future Improvements
+
+JWT authentication
+
+Pagination
+
+Async SQLAlchemy
+
+CI/CD pipeline
+
+React/Vue frontend
+
+Unit tests (pytest)
+
+🎯 Final Notes
+
+This README documents the final integrated version of the ToDoList project, fully implementing the Web API from Phase 3 while preserving the earlier CLI in deprecated form.
+
+The project now follows a clean layered structure and provides a complete, Dockerized, database-backed backend service with automatic OpenAPI documentation.

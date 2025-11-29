@@ -5,6 +5,10 @@ import sys
 
 
 def main():
+    print(
+        "WARNING: This CLI interface is deprecated. "
+        "Please use the FastAPI Web API instead."
+    )
     db = SessionLocal()
     service = ProjectService(db)
 
