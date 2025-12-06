@@ -26,10 +26,10 @@ class ToDoApp:
     def create_project(self, name: str, description: str = ""):
         if ValidationError.is_blank(name):
             raise ValidationError("Project name is required.")
-        if len(name.strip()) > 30:
-            raise ValidationError("Project name must be less than 30 characters.")
-        if len(description.strip()) > 150:
-            raise ValidationError("Project description must be less than 150 characters.")
+        if len(name.strip()) > 50:
+            raise ValidationError("Project name must be less than 50 characters.")
+        if len(description.strip()) > 200:
+            raise ValidationError("Project description must be less than 200 characters.")
 
         if self.project_service.get_by_name(name):
             raise ValidationError("Project name must be unique.")
@@ -72,8 +72,8 @@ class ToDoApp:
             raise ValidationError("Task title is required.")
         if len(title.strip()) > 50:
             raise ValidationError("Task title must be less than 50 characters.")
-        if len(description.strip()) > 200:
-            raise ValidationError("Task description must be less than 200 characters.")
+        if len(description.strip()) > 255:
+            raise ValidationError("Task description must be less than 255 characters.")
         if deadline:
             self._validate_deadline(deadline)
 
@@ -102,8 +102,8 @@ class ToDoApp:
             task.title = title.strip()
 
         if description:
-            if len(description.strip()) > 200:
-                raise ValidationError("Task description must be less than 200 characters.")
+            if len(description.strip()) > 255:
+                raise ValidationError("Task description must be less than 255 characters.")
             task.description = description.strip()
 
         if status:
@@ -158,7 +158,7 @@ class ToDoApp:
                         "  new                     - create a project\n"
                         "  editp                   - edit a project\n"
                         "  deletep                 - delete a project\n"
-                        "  commands                   - list commands for a project\n"
+                        "  tasks                   - list tasks for a project\n"
                         "  add                     - add a task\n"
                         "  editt                   - edit a task\n"
                         "  deletet                 - delete a task\n"
@@ -213,11 +213,11 @@ class ToDoApp:
                     st = input("New status (todo/doing/done): ").strip()
                     self.move_task(pid, tid, st)
                     print("➡️ Task moved.")
-                elif cmd == "commands":
+                elif cmd == "tasks":
                     pid = int(input("Project ID: "))
                     tasks = self.list_tasks(pid)
                     if not tasks:
-                        print("⚠️ No commands found.")
+                        print("⚠️ No tasks found.")
                     else:
                         print(f"\n📋 Tasks for Project {pid}:")
                         for t in tasks:

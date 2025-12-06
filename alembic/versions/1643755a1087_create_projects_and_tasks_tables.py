@@ -1,10 +1,3 @@
-"""create projects and commands tables
-
-Revision ID: 1643755a1087
-Revises: f1a96e280114
-Create Date: 2025-11-08 21:28:31.940964
-"""
-
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
@@ -20,42 +13,47 @@ def upgrade() -> None:
     status_enum = postgresql.ENUM("TODO", "IN_PROGRESS", "DONE", name="status")
     status_enum.create(op.get_bind(), checkfirst=True)
 
-    op.add_column("projects", sa.Column("description", sa.String(length=255), nullable=True))
+    # 1. تغییر نام جدول 'commands' به 'tasks'
+    op.rename_table("commands", "tasks")
+
+    # 2. تغییرات روی projects
+    op.add_column("projects", sa.Column("description", sa.String(length=200), nullable=True))
     op.alter_column(
         "projects",
         "name",
         existing_type=sa.VARCHAR(length=100),
-        type_=sa.String(length=30),
+        type_=sa.String(length=50),
         existing_nullable=False,
     )
     op.create_index(op.f("ix_projects_id"), "projects", ["id"], unique=False)
     op.drop_column("projects", "created_at")
 
-    op.add_column("commands", sa.Column("deadline", sa.DateTime(timezone=True), nullable=True))
+    # 3. تغییرات روی tasks (قبلا commands بود)
+    op.add_column("tasks", sa.Column("deadline", sa.DateTime(timezone=True), nullable=True))
     op.alter_column(
-        "commands",
+        "tasks",
         "title",
         existing_type=sa.VARCHAR(length=150),
         type_=sa.String(length=50),
         existing_nullable=False,
     )
     op.alter_column(
-        "commands",
+        "tasks",
         "description",
         existing_type=sa.TEXT(),
         type_=sa.String(length=255),
         existing_nullable=True,
     )
-    op.execute("ALTER TABLE commands ALTER COLUMN status TYPE status USING status::text::status")
+    op.execute("ALTER TABLE tasks ALTER COLUMN status TYPE status USING status::text::status")
     op.alter_column(
-        "commands",
+        "tasks",
         "created_at",
         existing_type=postgresql.TIMESTAMP(timezone=True),
         nullable=True,
         existing_server_default=sa.text("now()"),
     )
-    op.create_index(op.f("ix_tasks_id"), "commands", ["id"], unique=False)
-    op.drop_column("commands", "due_date")
+    op.create_index(op.f("ix_tasks_id"), "tasks", ["id"], unique=False)
+    op.drop_column("tasks", "due_date")
 
 
 def downgrade() -> None:
@@ -104,11 +102,13 @@ def downgrade() -> None:
     op.alter_column(
         "projects",
         "name",
-        existing_type=sa.String(length=30),
+        existing_type=sa.String(length=50),
         type_=sa.VARCHAR(length=100),
         existing_nullable=False,
     )
     op.drop_column("projects", "description")
+
+    op.rename_table("tasks", "commands")
 
     status_enum = postgresql.ENUM("TODO", "IN_PROGRESS", "DONE", name="status")
     status_enum.drop(op.get_bind(), checkfirst=True)

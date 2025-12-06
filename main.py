@@ -54,7 +54,7 @@ def main():
         print(f"🗑️ Project {project_id} deleted successfully.")
 
     elif command == "autoclose_tasks":
-        print("Running scheduled task: autoclose overdue commands...")
+        print("Running scheduled task: autoclose overdue tasks...")
         autoclose_overdue_tasks()
 
     else:
