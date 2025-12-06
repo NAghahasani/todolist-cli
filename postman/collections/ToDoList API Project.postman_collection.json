@@ -1,0 +1,195 @@
+{
+  "info": {
+    "_postman_id": "bc2c1247-4ab2-4dce-8e74-5ecc8ac05d0e",
+    "name": "ToDoList API Project",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "50622731",
+    "_collection_link": "https://narjesaghahasani-251480.postman.co/workspace/c2acf301-6e5c-47b4-88fd-5f2997a9d4a0/collection/50622731-bc2c1247-4ab2-4dce-8e74-5ecc8ac05d0e?action=share&source=collection_link&creator=50622731"
+  },
+  "item": [
+    {
+      "name": "1. Create Project",
+      "id": "6f397a43-cea4-4e35-adc6-163aa1765ad0",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Postman Project\",\r\n  \"description\": \"Created using Postman\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/projects/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. List All Projects (GET)",
+      "id": "95008270-4ef8-4977-a1b3-af5c0983d308",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Single Project by ID (GET)",
+      "id": "76533710-d169-4297-9f5b-d78c521be926",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/3",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Create New Task (POST)",
+      "id": "b3e8a85c-57f0-4c33-99ed-0636e5f94793",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"title\": \"Setup Postman\",\r\n  \"status\": \"IN_PROGRESS\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/projects/3/tasks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects",
+            "3",
+            "tasks",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. List Tasks for Project (GET)",
+      "id": "1237c3ed-9d50-4822-8987-98c1d63f4e15",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/3/tasks/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects",
+            "3",
+            "tasks",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Update Task Status (PATCH)",
+      "id": "4bb3d20e-fde1-4b46-87a2-f24d1d0a6219",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"status\": \"DONE\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/projects/3/tasks/4",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects",
+            "3",
+            "tasks",
+            "4"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Delete Task (DELETE)",
+      "id": "905441c8-7052-46e3-a825-6c2857d461d6",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/3/tasks/4",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "projects",
+            "3",
+            "tasks",
+            "4"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Delete Project & Cascade Check",
+      "id": "cd0d6f24-253f-41cb-b383-82fbb15bd401",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
