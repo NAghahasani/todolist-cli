@@ -5,11 +5,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-# -------------------------
-# Project Schemas
-# -------------------------
-
-
 class ProjectBase(BaseModel):
     name: str = Field(min_length=1, max_length=50)
     description: str | None = Field(default=None, max_length=200)
@@ -19,16 +14,16 @@ class ProjectCreate(ProjectBase):
     pass
 
 
+class ProjectUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    description: str | None = Field(default=None, max_length=200)
+
+
 class ProjectRead(ProjectBase):
     id: int
 
     class Config:
         from_attributes = True
-
-
-# -------------------------
-# Task Schemas
-# -------------------------
 
 
 class TaskBase(BaseModel):

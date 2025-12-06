@@ -28,24 +28,6 @@ def list_tasks(
     return [TaskRead.model_validate(t) for t in tasks]
 
 
-@router.get("/{task_id}", response_model=TaskRead)
-def get_task(
-    project_id: int,
-    task_id: int,
-    db: Session = Depends(get_db),
-) -> TaskRead:
-    project_svc = ProjectService(db)
-    if project_svc.get_project(project_id) is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    task_svc = TaskService(db)
-    task = task_svc.get_task(project_id, task_id)
-    if task is None:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    return TaskRead.model_validate(task)
-
-
 @router.post(
     "/",
     response_model=TaskRead,
