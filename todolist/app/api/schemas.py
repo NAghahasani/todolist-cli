@@ -6,8 +6,8 @@ from pydantic import BaseModel, Field
 
 
 class ProjectBase(BaseModel):
-    name: str = Field(min_length=1, max_length=50)
-    description: str | None = Field(default=None, max_length=200)
+    name: str = Field(min_length=1, max_length=30)
+    description: str | None = Field(default=None, max_length=150)
 
 
 class ProjectCreate(ProjectBase):
@@ -15,8 +15,8 @@ class ProjectCreate(ProjectBase):
 
 
 class ProjectUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=50)
-    description: str | None = Field(default=None, max_length=200)
+    name: str | None = Field(default=None, min_length=1, max_length=30)
+    description: str | None = Field(default=None, max_length=150)
 
 
 class ProjectRead(ProjectBase):
@@ -27,8 +27,8 @@ class ProjectRead(ProjectBase):
 
 
 class TaskBase(BaseModel):
-    title: str = Field(min_length=1, max_length=50)
-    description: str | None = Field(default=None, max_length=255)
+    title: str = Field(min_length=1, max_length=30)
+    description: str | None = Field(default=None, max_length=150)
     status: str = Field(default="TODO")
     deadline: datetime | None = None
 

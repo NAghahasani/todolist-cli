@@ -1,146 +1,126 @@
-ToDoList – Web API (FastAPI + PostgreSQL)
+# ToDoList Web API 🚀
 
-This project is a fully modular To-Do List backend.
-In Phase 3, the project becomes a full Web API using FastAPI and PostgreSQL.
-The old CLI (Phases 1 & 2) still exists but is deprecated.
+A comprehensive, modular, and layered **RESTful API** for managing projects and tasks. This project demonstrates modern Python backend development practices, transitioning from a legacy CLI to a robust Web API using **FastAPI** and **PostgreSQL**.
 
-✔ Main Features
+---
 
-Project management (create, list, get, delete)
+## 🏗️ Architecture & Design
 
-Task management (create, list, get, update, delete)
+The project follows a strict **Layered Architecture** to ensure separation of concerns, maintainability, and scalability:
 
-Status workflow: TODO → IN_PROGRESS → DONE
+* **API Layer (Controllers):** Handles HTTP requests, input validation (Pydantic), and response formatting. (`app/api/routes`)
+* **Service Layer (Business Logic):** Implements core business rules (e.g., uniqueness checks, task limits) and orchestrates data flow. (`app/services`)
+* **Repository Layer (Persistence):** Manages direct database interactions using SQLAlchemy. (`app/repositories`)
+* **Domain Layer (Models):** Defines database schemas and entities. (`app/models`)
 
-Validation for names, descriptions, dates, statuses
+---
 
-Configurable limits via .env
-Architecture Overview
-todolist/
-│
-├── app/
-│   ├── api/
-│   │   ├── routes/       # FastAPI route definitions
-│   │   ├── schemas.py    # Pydantic schemas
-│   │   └── main.py       # FastAPI entry point
-│   │
-│   ├── services/         # Business logic layer
-│   ├── repositories/     # Database access layer
-│   ├── models/           # SQLAlchemy ORM models
-│   └── db/               # Engine + session + Alembic setup
-│
-├── alembic/              # Migration scripts
-├── docker-compose.yml    # PostgreSQL container
-├── .env                  # Environment variables
-├── main.py               # Legacy CLI (deprecated)
-└── README.md
+## 🛠️ Tech Stack
 
+* **Language:** Python 3.12+
+* **Framework:** FastAPI
+* **Database:** PostgreSQL 15
+* **ORM:** SQLAlchemy (Sync)
+* **Migration Tool:** Alembic
+* **Dependency Manager:** Poetry
+* **Containerization:** Docker & Docker Compose
+* **Testing:** Postman Collection
 
-Architecture follows a clean layered structure:
-API → Service → Repository → Model → DB
-Installation & Setup
-1️⃣ Install dependencies
+---
+
+## 🚀 Getting Started
+
+Follow these steps to set up and run the project locally.
+
+### Prerequisites
+* Docker & Docker Compose
+* Python 3.12+
+* Poetry (`pip install poetry`)
+
+### 1. Clone & Install Dependencies
+```bash
+git clone <your-repo-url>
+cd todolist-cli
 poetry install
+2. Setup Environment Variables
+Create a .env file in the root directory based on .env.example:
 
-2️⃣ Start PostgreSQL (Docker)
+Bash
+
+cp .env.example .env
+Ensure DB_HOST=localhost, DB_PORT=5432, DB_USER=NA, DB_PASSWORD=1818 (or match your docker-compose credentials).
+
+3. Start Database (Docker)
+Launch the PostgreSQL container:
+
+Bash
+
 docker compose up -d
+4. Apply Database Migrations
+Create the tables in the database using Alembic:
 
-3️⃣ Apply migrations
+Bash
+
 poetry run alembic upgrade head
+5. Run the Server
+Start the FastAPI server with auto-reload:
 
-4️⃣ Run the FastAPI server
+Bash
+
 poetry run uvicorn todolist.app.api.main:app --reload
+The API will be available at: http://127.0.0.1:8000
 
-5️⃣ Open API documentation
-http://127.0.0.1:8000/docs
-Environment Variables
+📖 Documentation & Testing
+1. Swagger UI (Auto-generated Docs)
+Once the server is running, visit: 👉 http://127.0.0.1:8000/docs
 
-Example .env file:
+You can view all endpoints and test them interactively.
 
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASS=postgres
-DB_NAME=todolist
+2. Postman Collection (Phase 4)
+This repository includes a full Postman collection for end-to-end testing.
 
-MAX_NUMBER_OF_PROJECT=10
-MAX_NUMBER_OF_TASK=100
+Collection File: _POSTMAN_COLLECTION.json
 
+Environment File: _POSTMAN_ENVIRONMENT.json
 
-These values control database connection and project/task limits.
+How to use:
 
-📌 Example API Requests
-Create a project
-POST /api/projects/
-{
-  "name": "Demo",
-  "description": "My project"
-}
+Open Postman.
 
-Create a task
-POST /api/projects/1/tasks/
-{
-  "title": "Implement backend",
-  "status": "TODO",
-  "deadline": "2025-12-20T10:00:00"
-}
-Update a task (partial update)
-PATCH /api/projects/1/tasks/3
-{
-  "status": "DONE"
-}
+Click Import and select both JSON files from the project root.
 
-Delete a task
-DELETE /api/projects/1/tasks/5
+Select the "Local Development" environment in Postman.
 
-🕹 Legacy CLI (Deprecated)
+Run the requests!
 
-The original CLI from earlier phases still works:
+⚙️ Features & Commands
+✅ API Endpoints
+Projects: Create, List, Update (Patch), Delete (Cascade).
 
-poetry run python main.py
+Tasks: Create, List (by Project), Update Status, Delete.
 
+🕒 Auto-close Overdue Tasks
+A background command to check for overdue tasks and mark them as DONE. Run it manually via CLI:
 
-But on startup you will see:
+Bash
 
-WARNING: CLI interface is deprecated. Please use the FastAPI Web API instead.
+poetry run python -m todolist.app.commands.autoclose
+⚠️ Deprecation Notice
+The legacy CLI interface (main.py) is deprecated as of Phase 3. Please use the REST API for all interactions.
 
-
-The CLI is no longer maintained.
-README – Section 6/6
-🧰 Technologies Used
-
-Python 3.12
-
-FastAPI
-
-SQLAlchemy ORM
-
-Alembic
-
-PostgreSQL
-
-Docker
-
-Poetry
-
-Fully typed code (PEP 484)
-
-📈 Optional Future Improvements
-
-JWT authentication
-
-Pagination
-
-Async SQLAlchemy
-
-CI/CD pipeline
-
-React/Vue frontend
-
-Unit tests (pytest)
-
-🎯 Final Notes
-
-This README documents the final integrated version of the ToDoList project, fully implementing the Web API from Phase 3 while preserving the earlier CLI in deprecated form.
-
-The project now follows a clean layered structure and provides a complete, Dockerized, database-backed backend service with automatic OpenAPI documentation.
+📂 Project Structure
+todolist-cli/
+├── alembic/                # Migration scripts
+├── todolist/
+│   └── app/
+│       ├── api/            # Routes & Pydantic Schemas
+│       ├── commands/       # CLI commands (autoclose)
+│       ├── core/           # Config & Utils
+│       ├── db/             # Database Session
+│       ├── models/         # SQLAlchemy Models
+│       ├── repositories/   # CRUD Operations
+│       └── services/       # Business Logic
+├── docker-compose.yml
+├── poetry.lock
+├── pyproject.toml
+└── README.md

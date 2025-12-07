@@ -26,10 +26,10 @@ class ToDoApp:
     def create_project(self, name: str, description: str = ""):
         if ValidationError.is_blank(name):
             raise ValidationError("Project name is required.")
-        if len(name.strip()) > 50:
-            raise ValidationError("Project name must be less than 50 characters.")
-        if len(description.strip()) > 200:
-            raise ValidationError("Project description must be less than 200 characters.")
+        if len(name.strip()) > 30:
+            raise ValidationError("Project name must be less than 30 characters.")
+        if len(description.strip()) > 150:
+            raise ValidationError("Project description must be less than 150 characters.")
 
         if self.project_service.get_by_name(name):
             raise ValidationError("Project name must be unique.")
@@ -70,10 +70,10 @@ class ToDoApp:
     ):
         if ValidationError.is_blank(title):
             raise ValidationError("Task title is required.")
-        if len(title.strip()) > 50:
-            raise ValidationError("Task title must be less than 50 characters.")
-        if len(description.strip()) > 255:
-            raise ValidationError("Task description must be less than 255 characters.")
+        if len(title.strip()) > 30: # اصلاح شد
+            raise ValidationError("Task title must be less than 30 characters.")
+        if len(description.strip()) > 150: # اصلاح شد
+            raise ValidationError("Task description must be less than 150 characters.")
         if deadline:
             self._validate_deadline(deadline)
 
@@ -97,13 +97,13 @@ class ToDoApp:
         if title:
             if ValidationError.is_blank(title):
                 raise ValidationError("Task title cannot be blank.")
-            if len(title.strip()) > 50:
-                raise ValidationError("Task title must be less than 50 characters.")
+            if len(title.strip()) > 30: # اصلاح شد
+                raise ValidationError("Task title must be less than 30 characters.")
             task.title = title.strip()
 
         if description:
-            if len(description.strip()) > 255:
-                raise ValidationError("Task description must be less than 255 characters.")
+            if len(description.strip()) > 150: # اصلاح شد
+                raise ValidationError("Task description must be less than 150 characters.")
             task.description = description.strip()
 
         if status:

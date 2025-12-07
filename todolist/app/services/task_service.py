@@ -1,178 +1,71 @@
 from __future__ import annotations
-
-from typing import Optional
-
+from datetime import datetime
 from sqlalchemy.orm import Session
-
-from todolist.app.models import Task, Status
+from todolist.app.models import Task
+from todolist.app.models.task import status_enum  # Status را از اینجا وارد نمیکنیم
 from todolist.app.repositories.task_repository import TaskRepository
-from todolist.app.repositories.project_repository import ProjectRepository
-from todolist.core.config import load_config
 
 
 class TaskService:
     def __init__(self, db: Session) -> None:
-        self.db = db
         self.repo = TaskRepository(db)
-        self.project_repo = ProjectRepository(db)
-        self.config = load_config()
-
-    # -------------------------
-    # Query helpers
-    # -------------------------
+        self.db = db
 
     def list_tasks(self, project_id: int) -> list[Task]:
-        return self.get_by_project(project_id)
+        return self.repo.get_all(project_id)
 
-    def get_by_project(self, project_id: int) -> list[Task]:
-        try:
-            # اگر ریپازیتوری متد مخصوص داشته باشد
-            return self.repo.get_by_project(project_id)  # type: ignore[attr-defined]
-        except AttributeError:
-            # در غیر این صورت مستقیم از سشن استفاده می‌کنیم
-            return (
-                self.db.query(Task)
-                .filter(Task.project_id == project_id)
-                .order_by(Task.id.asc())
-                .all()
-            )
-
-    def count_tasks(self, project_id: int) -> int:
-        return (
-            self.db.query(Task)
-            .filter(Task.project_id == project_id)
-            .count()
-        )
-
-    # -------------------------
-    # Create
-    # -------------------------
-
-    def create(
-        self,
-        project_id: int,
-        title: str,
-        description: str | None = None,
-        deadline=None,
-    ) -> Task:
-        project = self.project_repo.get_by_id(project_id)
-        if project is None:
-            raise ValueError(f"Project {project_id} does not exist")
-
-        if self.count_tasks(project_id) >= self.config.max_tasks:
-            raise ValueError("Maximum number of tasks reached")
-
-        task = self.repo.create(
-            project_id=project_id,
-            title=title,
-            description=description,
-            deadline=deadline,
-        )
-        return task
+    def get_task(self, project_id: int, task_id: int) -> Task | None:
+        return self.repo.get_by_id(project_id, task_id)
 
     def create_task(
-        self,
-        project_id: int,
-        title: str,
-        description: str | None = None,
-        status: str = "TODO",
-        deadline=None,
+            self,
+            project_id: int,
+            title: str,
+            description: str = "",
+            status: str = "TODO",
+            deadline: datetime | None = None,
     ) -> Task:
-        try:
-            status_enum = Status(status)
-        except ValueError:
-            status_enum = Status.TODO
-
-        task = self.create(
+        return self.repo.create(
             project_id=project_id,
             title=title,
             description=description,
+            status=status,
             deadline=deadline,
         )
 
-        task.status = status_enum
-        self.db.commit()
-        self.db.refresh(task)
+    def update_task(
+            self,
+            project_id: int,
+            task_id: int,
+            title: str | None = None,
+            description: str | None = None,
+            status: str | None = None,
+            deadline: datetime | None = None,
+    ) -> Task:
+        task = self.repo.update(
+            project_id=project_id,
+            task_id=task_id,
+            title=title,
+            description=description,
+            status=status,
+            deadline=deadline,
+        )
+        if task is None:
+            raise ValueError("Task not found")
         return task
-
-    # -------------------------
-    # Read
-    # -------------------------
-
-    def get_by_id(self, task_id: int) -> Optional[Task]:
-        return self.repo.get_by_id(task_id)
-
-    def get_task(self, project_id: int, task_id: int) -> Optional[Task]:
-        task = self.get_by_id(task_id)
-        if task is None or task.project_id != project_id:
-            return None
-        return task
-
-    # -------------------------
-    # Update
-    # -------------------------
 
     def update_task_status(
-        self,
-        project_id: int,
-        task_id: int,
-        new_status: str,
+            self, project_id: int, task_id: int, new_status: str
     ) -> Task:
-        try:
-            status_enum = Status(new_status)
-        except ValueError:
-            raise ValueError("Invalid status value")
+        if new_status not in [e.name for e in status_enum.enums]:
+            raise ValueError("Invalid status value.")
 
-        task = self.get_task(project_id, task_id)
+        task = self.repo.update(
+            project_id=project_id, task_id=task_id, status=new_status
+        )
         if task is None:
             raise ValueError("Task not found")
-
-        task.status = status_enum
-        self.db.commit()
-        self.db.refresh(task)
         return task
-
-    def update_task(
-        self,
-        project_id: int,
-        task_id: int,
-        title: str | None = None,
-        description: str | None = None,
-        status: str | None = None,
-        deadline=None,
-    ) -> Task:
-        task = self.get_task(project_id, task_id)
-        if task is None:
-            raise ValueError("Task not found")
-
-        if title is not None:
-            task.title = title
-
-        if description is not None:
-            task.description = description
-
-        if deadline is not None:
-            task.deadline = deadline
-
-        if status is not None:
-            try:
-                task.status = Status(status)
-            except ValueError:
-                raise ValueError("Invalid status value")
-
-        self.db.commit()
-        self.db.refresh(task)
-        return task
-
-    # -------------------------
-    # Delete
-    # -------------------------
-
-    def delete(self, task_id: int) -> bool:
-        return self.repo.delete(task_id)
 
     def delete_task(self, project_id: int, task_id: int) -> bool:
-        task = self.get_task(project_id, task_id)
-        if task is None:
-            return False
         return self.repo.delete(task_id)

@@ -13,22 +13,19 @@ def upgrade() -> None:
     status_enum = postgresql.ENUM("TODO", "IN_PROGRESS", "DONE", name="status")
     status_enum.create(op.get_bind(), checkfirst=True)
 
-    # 1. تغییر نام جدول 'commands' به 'tasks'
     op.rename_table("commands", "tasks")
 
-    # 2. تغییرات روی projects
-    op.add_column("projects", sa.Column("description", sa.String(length=200), nullable=True))
+    op.add_column("projects", sa.Column("description", sa.String(length=150), nullable=True))
     op.alter_column(
         "projects",
         "name",
         existing_type=sa.VARCHAR(length=100),
-        type_=sa.String(length=50),
+        type_=sa.String(length=30),
         existing_nullable=False,
     )
     op.create_index(op.f("ix_projects_id"), "projects", ["id"], unique=False)
     op.drop_column("projects", "created_at")
 
-    # 3. تغییرات روی tasks (قبلا commands بود)
     op.add_column("tasks", sa.Column("deadline", sa.DateTime(timezone=True), nullable=True))
     op.alter_column(
         "tasks",
@@ -102,7 +99,7 @@ def downgrade() -> None:
     op.alter_column(
         "projects",
         "name",
-        existing_type=sa.String(length=50),
+        existing_type=sa.String(length=30),
         type_=sa.VARCHAR(length=100),
         existing_nullable=False,
     )

@@ -1,34 +1,34 @@
-from typing import Optional
-
 from sqlalchemy.orm import Session
-
-from todolist.app.models import Task, Status
+from todolist.app.models import Task
 
 
 class TaskRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def get_all(self) -> list[Task]:
-        return self.db.query(Task).all()
+    def get_by_id(self, project_id: int, task_id: int) -> Task | None:
+        return (
+            self.db.query(Task)
+            .filter(Task.id == task_id, Task.project_id == project_id)
+            .first()
+        )
 
-    def get_by_id(self, task_id: int) -> Optional[Task]:
-        return self.db.query(Task).filter(Task.id == task_id).first()
-
-    def get_by_project(self, project_id: int) -> list[Task]:
+    def get_all(self, project_id: int) -> list[Task]:
         return self.db.query(Task).filter(Task.project_id == project_id).all()
 
     def create(
         self,
         project_id: int,
         title: str,
-        description: str | None = None,
-        deadline=None,
+        description: str,
+        status: str,
+        deadline: str | None = None,
     ) -> Task:
         task = Task(
             project_id=project_id,
             title=title,
             description=description,
+            status=status,
             deadline=deadline,
         )
         self.db.add(task)
@@ -36,19 +36,34 @@ class TaskRepository:
         self.db.refresh(task)
         return task
 
-    def update_status(self, task_id: int, new_status: Status) -> Optional[Task]:
-        task = self.get_by_id(task_id)
+    def update(
+        self,
+        project_id: int,
+        task_id: int,
+        title: str | None,
+        description: str | None,
+        status: str | None,
+        deadline: str | None,
+    ) -> Task | None:
+        task = self.db.query(Task).filter(Task.id == task_id, Task.project_id == project_id).first()
+
         if not task:
             return None
-        task.status = new_status
+
+        if title is not None:
+            task.title = title
+        if description is not None:
+            task.description = description
+        if status is not None:
+            task.status = status
+        if deadline is not None:
+            task.deadline = deadline
+
         self.db.commit()
         self.db.refresh(task)
         return task
 
     def delete(self, task_id: int) -> bool:
-        task = self.get_by_id(task_id)
-        if not task:
-            return False
-        self.db.delete(task)
+        deleted = self.db.query(Task).filter(Task.id == task_id).delete()
         self.db.commit()
-        return True
+        return deleted > 0

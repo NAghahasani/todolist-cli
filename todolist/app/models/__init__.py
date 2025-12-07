@@ -1,2 +1,2 @@
 from .project import Project
-from .task import Task, Status
+from .task import Task
