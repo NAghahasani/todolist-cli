@@ -6,7 +6,10 @@ from sqlalchemy.dialects.postgresql import ENUM
 
 status_enum = ENUM("TODO", "IN_PROGRESS", "DONE", name="status")
 
+
 class Task(Base):
+    """SQLAlchemy model representing a task associated with a project."""
+
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

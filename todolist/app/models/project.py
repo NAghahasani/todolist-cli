@@ -2,7 +2,12 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 from todolist.app.db.base import Base
 
+
 class Project(Base):
+    """SQLAlchemy model representing a project.
+
+    Includes cascade rule to delete associated tasks upon project deletion.
+    """
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, autoincrement=True)

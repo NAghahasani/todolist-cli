@@ -1,4 +1,4 @@
-"""Engine and Session factory (moved from core/db.py)."""
+"""Engine and Session factory (moved from cli/db.py)."""
 from __future__ import annotations
 
 from sqlalchemy import create_engine
@@ -9,7 +9,7 @@ import os
 # Load environment variables
 load_dotenv()
 
-# Database configuration (kept exactly as in core/db.py)
+# Database configuration (kept exactly as in cli/db.py)
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")

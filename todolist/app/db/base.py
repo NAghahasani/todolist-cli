@@ -1,4 +1,4 @@
-"""Declarative base for ORM models (moved from core/db.py)."""
+"""Declarative base for ORM models (moved from cli/db.py)."""
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
