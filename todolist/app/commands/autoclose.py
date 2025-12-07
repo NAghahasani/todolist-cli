@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
-from todolist.app.db.session import SessionLocal
-from todolist.app.repositories.task_repository import TaskRepository
-from todolist.app.models import Status
+from todolist.app.persistence.db import SessionLocal
+from todolist.app.persistence.repositories.task_repository import TaskRepository
+from todolist.app.persistence.models import Status
 
 
 def autoclose_overdue_tasks() -> None:

@@ -3,12 +3,9 @@ from __future__ import annotations
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
 
-from todolist.app.db.base import Base
-from todolist.app.db.session import engine
-from todolist.app import models  # noqa: F401  (import models so tables are registered)
-
+from todolist.app.persistence.db import Base
+from todolist.app.persistence.db import engine
 
 # Interpret the config file for Python logging.
 fileConfig(context.config.config_file_name)

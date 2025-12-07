@@ -1,10 +1,10 @@
 from __future__ import annotations
 from datetime import datetime
 from sqlalchemy.orm import Session
-from todolist.app.models import Task
-from todolist.app.models.task import status_enum
-from todolist.app.repositories.task_repository import TaskRepository
-from todolist.app.exceptions.errors import TaskNotFoundError, MaxLimitExceededError
+from todolist.app.persistence.models import Task
+from todolist.app.persistence.models import status_enum
+from todolist.app.persistence.repositories.task_repository import TaskRepository
+from todolist.app.exceptions.errors import TaskNotFoundError
 
 ALLOWED_STATUSES = [e for e in status_enum.enums]
 

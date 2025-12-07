@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from todolist.app.models import Project
-from todolist.app.repositories.project_repository import ProjectRepository
+from todolist.app.persistence.models import Project
+from todolist.app.persistence.repositories.project_repository import ProjectRepository
 from todolist.app.exceptions.errors import ProjectNotFoundError, DuplicateNameError
 
 

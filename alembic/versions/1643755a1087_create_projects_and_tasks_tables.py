@@ -99,7 +99,7 @@ def downgrade() -> None:
     op.alter_column(
         "projects",
         "name",
-        existing_type=sa.String(length=30),
+        existtype=sa.String(length=30),
         type_=sa.VARCHAR(length=100),
         existing_nullable=False,
     )

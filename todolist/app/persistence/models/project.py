@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-from todolist.app.db.base import Base
+from todolist.app.persistence.db import Base
 
 
 class Project(Base):

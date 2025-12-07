@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from todolist.app.models import Project
+from todolist.app.persistence.models import Project
 
 
 class ProjectRepository:

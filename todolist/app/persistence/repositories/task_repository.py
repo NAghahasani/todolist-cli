@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
-from todolist.app.models import Task
-from todolist.app.models.task import status_enum
+from todolist.app.persistence.models import Task
 
 
 class TaskRepository:

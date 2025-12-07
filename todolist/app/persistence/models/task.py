@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from todolist.app.db.base import Base
+from todolist.app.persistence.db import Base
 from sqlalchemy.dialects.postgresql import ENUM
 
 status_enum = ENUM("TODO", "IN_PROGRESS", "DONE", name="status")
