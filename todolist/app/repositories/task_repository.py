@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from todolist.app.models import Task
+from todolist.app.models.task import status_enum
 
 
 class TaskRepository:
@@ -31,39 +32,45 @@ class TaskRepository:
             status=status,
             deadline=deadline,
         )
-        self.db.add(task)
-        self.db.commit()
-        self.db.refresh(task)
-        return task
+        try:
+            self.db.add(task)
+            self.db.commit()
+            self.db.refresh(task)
+            return task
+        except Exception:
+            self.db.rollback()
+            raise
 
-    def update(
+
+    def update_by_data(
         self,
         project_id: int,
         task_id: int,
-        title: str | None,
-        description: str | None,
-        status: str | None,
-        deadline: str | None,
+        data: dict
     ) -> Task | None:
+        """Updates a task using a dictionary of data with transactional safety."""
         task = self.db.query(Task).filter(Task.id == task_id, Task.project_id == project_id).first()
 
         if not task:
             return None
 
-        if title is not None:
-            task.title = title
-        if description is not None:
-            task.description = description
-        if status is not None:
-            task.status = status
-        if deadline is not None:
-            task.deadline = deadline
+        for key, value in data.items():
+            setattr(task, key, value)
 
-        self.db.commit()
-        self.db.refresh(task)
-        return task
+        try:
+            self.db.commit()
+            self.db.refresh(task)
+            return task
+        except Exception:
+            self.db.rollback()
+            raise
+
 
     def delete(self, task_id: int) -> bool:
-        deleted = self.db.query(Task).filter(Task.id == task_id).delete()
-        self.db.commit()
-        return deleted > 0
+        try:
+            deleted = self.db.query(Task).filter(Task.id == task_id).delete()
+            self.db.commit()
+            return deleted > 0
+        except Exception:
+            self.db.rollback()
+            raise
