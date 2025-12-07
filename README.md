@@ -1,126 +1,120 @@
-# ToDoList Web API 🚀
+# README: To-Do List Manager System
 
-A comprehensive, modular, and layered **RESTful API** for managing projects and tasks. This project demonstrates modern Python backend development practices, transitioning from a legacy CLI to a robust Web API using **FastAPI** and **PostgreSQL**.
+The To-Do List Manager is a scalable task management system built using Python, FastAPI, and a clear Layered Architecture (Services/Repositories). The primary focus is providing a robust REST API for data interaction.
 
----
-
-## 🏗️ Architecture & Design
-
-The project follows a strict **Layered Architecture** to ensure separation of concerns, maintainability, and scalability:
-
-* **API Layer (Controllers):** Handles HTTP requests, input validation (Pydantic), and response formatting. (`app/api/routes`)
-* **Service Layer (Business Logic):** Implements core business rules (e.g., uniqueness checks, task limits) and orchestrates data flow. (`app/services`)
-* **Repository Layer (Persistence):** Manages direct database interactions using SQLAlchemy. (`app/repositories`)
-* **Domain Layer (Models):** Defines database schemas and entities. (`app/models`)
+Status | Tech Stack | Architecture | License
+:---: | :---: | :---: | :---:
+🟢 Ready | Python 3.11+, FastAPI, Poetry | Layered (Services/Repositories) | MIT
 
 ---
 
-## 🛠️ Tech Stack
+# 🚀 Getting Started
 
-* **Language:** Python 3.12+
-* **Framework:** FastAPI
-* **Database:** PostgreSQL 15
-* **ORM:** SQLAlchemy (Sync)
-* **Migration Tool:** Alembic
-* **Dependency Manager:** Poetry
-* **Containerization:** Docker & Docker Compose
-* **Testing:** Postman Collection
+This project uses Poetry for dependency management.
 
----
+### 1. Prerequisites
 
-## 🚀 Getting Started
+* Python 3.11+
+* Poetry (Install using: pip install poetry)
 
-Follow these steps to set up and run the project locally.
+### 2. Installation
 
-### Prerequisites
-* Docker & Docker Compose
-* Python 3.12+
-* Poetry (`pip install poetry`)
+Install all required libraries defined in pyproject.toml using Poetry:
 
-### 1. Clone & Install Dependencies
-```bash
-git clone <your-repo-url>
-cd todolist-cli
 poetry install
-2. Setup Environment Variables
-Create a .env file in the root directory based on .env.example:
 
-Bash
+### 3. Database Setup (Migrations)
 
-cp .env.example .env
-Ensure DB_HOST=localhost, DB_PORT=5432, DB_USER=NA, DB_PASSWORD=1818 (or match your docker-compose credentials).
+To initialize the database structure and apply the SQLAlchemy models, use Alembic migrations:
 
-3. Start Database (Docker)
-Launch the PostgreSQL container:
-
-Bash
-
-docker compose up -d
-4. Apply Database Migrations
-Create the tables in the database using Alembic:
-
-Bash
-
+# Apply all pending migrations
 poetry run alembic upgrade head
-5. Run the Server
-Start the FastAPI server with auto-reload:
 
-Bash
+---
+
+# 🏃 Running the API (Main Application)
+
+The core API is executed using uvicorn. Use the --reload flag during development for automatic restart on code changes.
 
 poetry run uvicorn todolist.app.api.main:app --reload
-The API will be available at: http://127.0.0.1:8000
 
-📖 Documentation & Testing
-1. Swagger UI (Auto-generated Docs)
-Once the server is running, visit: 👉 http://127.0.0.1:8000/docs
+### 🌍 API Access
 
-You can view all endpoints and test them interactively.
+The API will be available at:
 
-2. Postman Collection (Phase 4)
-This repository includes a full Postman collection for end-to-end testing.
+👉 http://127.0.0.1:8000
 
-Collection File: _POSTMAN_COLLECTION.json
+---
 
-Environment File: _POSTMAN_ENVIRONMENT.json
+# 📖 Documentation & Testing
 
-How to use:
+### 1. Interactive Documentation (Swagger UI)
 
-Open Postman.
+FastAPI automatically generates comprehensive API documentation. You can view and test all endpoints interactively:
 
-Click Import and select both JSON files from the project root.
+🔗 Swagger URL: http://127.0.0.1:8000/docs
 
-Select the "Local Development" environment in Postman.
+### 2. Postman Collection
 
-Run the requests!
+For end-to-end testing, the repository includes a complete Postman collection:
 
-⚙️ Features & Commands
-✅ API Endpoints
-Projects: Create, List, Update (Patch), Delete (Cascade).
+* Collection File: _POSTMAN_COLLECTION.json
+* Environment File: _POSTMAN_ENVIRONMENT.json
 
-Tasks: Create, List (by Project), Update Status, Delete.
+How to Use: Import both JSON files into Postman and ensure the "Local Development" environment is selected before running requests.
 
-🕒 Auto-close Overdue Tasks
-A background command to check for overdue tasks and mark them as DONE. Run it manually via CLI:
+---
 
-Bash
+# ⚙️ Features and Commands
+
+### Primary API Endpoints
+
+Resource | Operations | HTTP Method | Description
+:---: | :---: | :---: | :---:
+/projects | CRUD | POST, GET, PATCH, DELETE | Manage projects. Deleting a project cascades to delete all associated tasks.
+/tasks | CRUD | POST, GET, PATCH, DELETE | Manage tasks. Supports listing by project ID and updating status.
+
+### Background Commands
+
+A background command is included to automatically check for overdue tasks and mark them as DONE. Run it manually via the CLI:
 
 poetry run python -m todolist.app.commands.autoclose
-⚠️ Deprecation Notice
-The legacy CLI interface (main.py) is deprecated as of Phase 3. Please use the REST API for all interactions.
 
-📂 Project Structure
+#### ⏰ Automation Setup (Required for Scheduled Execution)
+
+To ensure the auto-close logic runs periodically (e.g., every 15 minutes) as required by the project, the scheduler process must be run **in a separate terminal tab**:
+
+1.  **Run the Scheduler:** This process will continuously check the defined schedule.
+    
+    poetry run python todolist/app/commands/scheduler.py
+
+2.  **Keep it running:** Do not close this terminal tab.
+### ⚠️ Deprecation Notice (Important)
+
+Attention: The legacy CLI interface is deprecated as of Phase 3. Please use the REST API for all interactions and the addition of new features.
+
+---
+
+# 📂 Project Structure (Architecture)
+
+This project utilizes a layered architecture for clear separation of concerns, particularly isolating the data persistence layer.
+
 todolist-cli/
-├── alembic/                # Migration scripts
+├── alembic/                # Database migration scripts
 ├── todolist/
 │   └── app/
-│       ├── api/            # Routes & Pydantic Schemas
-│       ├── commands/       # CLI commands (autoclose)
-│       ├── core/           # Config & Utils
-│       ├── db/             # Database Session
-│       ├── models/         # SQLAlchemy Models
-│       ├── repositories/   # CRUD Operations
-│       └── services/       # Business Logic
-├── docker-compose.yml
-├── poetry.lock
-├── pyproject.toml
-└── README.md
+│       ├── api/            # Routes, Controllers, & Pydantic Schemas
+│       ├── commands/       # Background commands
+│       ├── exceptions/     # Custom Exception classes
+│       ├── persistence/    # Data Access Layer
+│       │   ├── db/         # Database Session setup
+│       │   ├── models/     # SQLAlchemy Models (Table structure)
+│       │   └── repositories/ # Repository implementations (CRUD)
+│       └── services/       # Core Business Logic
+│
+└── cli/                    # Deprecated legacy CLI interface
+
+Layer Responsibilities:
+* Services: Contains all business logic, validation, and orchestration of repositories.
+* Repositories: Directly handles data access operations (CRUD) with SQLAlchemy.
+* API: Handles HTTP requests, input validation (Pydantic), and delegates tasks to the Services layer.

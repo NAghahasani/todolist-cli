@@ -19,6 +19,7 @@ def load_config() -> AppConfig:
         max_projects = int(os.getenv("MAX_NUMBER_OF_PROJECT", "10"))
         max_tasks = int(os.getenv("MAX_NUMBER_OF_TASK", "100"))
     except ValueError as exc:
+        # Raised when environment values are not valid integers.
         raise ValueError("Environment values must be integers.") from exc
 
     return AppConfig(max_projects=max_projects, max_tasks=max_tasks)

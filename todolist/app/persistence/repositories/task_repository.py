@@ -33,6 +33,10 @@ class TaskRepository:
         """
         return self.db.query(Task).filter(Task.project_id == project_id).all()
 
+    def get_all_tasks(self) -> list[Task]:
+        """Returns all tasks across all projects (used for background commands like autoclose)."""
+        return self.db.query(Task).all()
+
     def create(
             self,
             project_id: int,

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from todolist.app.persistence.db import Base
+from todolist.app.persistence.db.base import Base
 from sqlalchemy.dialects.postgresql import ENUM
 
 status_enum = ENUM("TODO", "IN_PROGRESS", "DONE", name="status")
@@ -19,5 +19,6 @@ class Task(Base):
     status = Column(status_enum, default="TODO", nullable=False)
     deadline = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=func.now(), nullable=True)
+    closed_at = Column(DateTime(timezone=True), nullable=True)
 
     project = relationship("Project", back_populates="tasks")

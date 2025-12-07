@@ -8,48 +8,42 @@ from todolist.app.services.task_service import TaskService
 
 
 class ToDoApp:
-    """Core application logic for managing projects and commands (Phase 2: Database-backed)."""
+    """Core application logic for managing projects and commands (Phase 2: Database-backed).
+
+    This class now delegates all validation and persistence logic to the Service Layer,
+    adhering to Separation of Concerns.
+    """
 
     def __init__(
-        self,
-        max_projects: int,
-        max_tasks: int,
-        project_service: Optional[ProjectService] = None,
-        task_service: Optional[TaskService] = None,
+            self,
+            max_projects: int,
+            max_tasks: int,
+            project_service: Optional[ProjectService] = None,
+            task_service: Optional[TaskService] = None,
     ) -> None:
         self._max_projects = max_projects
         self._max_tasks = max_tasks
+        # Dependencies are injected (Constructor Injection)
         self.project_service = project_service
         self.task_service = task_service
 
     # ---------------- Project Operations ----------------
     def create_project(self, name: str, description: str = ""):
-        if ValidationError.is_blank(name):
-            raise ValidationError("Project name is required.")
-        if len(name.strip()) > 30:
-            raise ValidationError("Project name must be less than 30 characters.")
-        if len(description.strip()) > 150:
-            raise ValidationError("Project description must be less than 150 characters.")
-
-        if self.project_service.get_by_name(name):
-            raise ValidationError("Project name must be unique.")
-
-        project = self.project_service.create(name)
+        # Validation (name length, blank, uniqueness) is now handled by ProjectService.
+        project = self.project_service.create(
+            name=name.strip(),
+            description=description.strip()
+        )
         print(f"✅ Project '{project.name}' created (ID={project.id})")
         return project
 
     def edit_project(self, pid: int, new_name: str, new_description: str):
-        project = self.project_service.get_by_id(pid)
-        if not project:
-            raise ValidationError("Project not found.")
-
-        if new_name and self.project_service.get_by_name(new_name):
-            raise ValidationError("Project name already exists.")
-
-        project.name = new_name.strip() or project.name
-        project.description = new_description.strip() or project.description
-        self.project_service.db.commit()
-        self.project_service.db.refresh(project)
+        # Delegate update logic and uniqueness checks to the service layer.
+        project = self.project_service.update(
+            project_id=pid,
+            new_name=new_name.strip(),
+            new_description=new_description.strip()
+        )
         return project
 
     def delete_project(self, pid: int) -> None:
@@ -62,62 +56,42 @@ class ToDoApp:
 
     # ---------------- Task Operations ----------------
     def add_task(
-        self,
-        project_id: int,
-        title: str,
-        description: str = "",
-        deadline: Optional[str] = None,
+            self,
+            project_id: int,
+            title: str,
+            description: str = "",
+            deadline: Optional[str] = None,
     ):
-        if ValidationError.is_blank(title):
-            raise ValidationError("Task title is required.")
-        if len(title.strip()) > 30: # اصلاح شد
-            raise ValidationError("Task title must be less than 30 characters.")
-        if len(description.strip()) > 150: # اصلاح شد
-            raise ValidationError("Task description must be less than 150 characters.")
-        if deadline:
-            self._validate_deadline(deadline)
-
-        task = self.task_service.create(project_id, title, description, deadline)
+        # Validation (title length, blank, description length, deadline format)
+        # is now handled by TaskService.
+        task = self.task_service.create(
+            project_id=project_id,
+            title=title.strip(),
+            description=description.strip(),
+            deadline=deadline
+        )
         print(f"🆕 Task '{task.title}' added (ID={task.id})")
         return task
 
     def edit_task(
-        self,
-        project_id: int,
-        task_id: int,
-        title: Optional[str] = None,
-        description: Optional[str] = None,
-        status: Optional[Status] = None,
-        deadline: Optional[str] = None,
+            self,
+            project_id: int,
+            task_id: int,
+            title: Optional[str] = None,
+            description: Optional[str] = None,
+            status: Optional[Status] = None,
+            deadline: Optional[str] = None,
     ):
-        task = self.task_service.get_by_id(task_id)
-        if not task or task.project_id != project_id:
-            raise ValidationError("Task not found.")
-
-        if title:
-            if ValidationError.is_blank(title):
-                raise ValidationError("Task title cannot be blank.")
-            if len(title.strip()) > 30: # اصلاح شد
-                raise ValidationError("Task title must be less than 30 characters.")
-            task.title = title.strip()
-
-        if description:
-            if len(description.strip()) > 150: # اصلاح شد
-                raise ValidationError("Task description must be less than 150 characters.")
-            task.description = description.strip()
-
-        if status:
-            if status not in ("todo", "doing", "done"):
-                raise ValidationError("Invalid status. Use 'todo', 'doing', or 'done'.")
-            task.status = status
-
-        if deadline:
-            self._validate_deadline(deadline)
-            task.deadline = deadline
-
-        self.task_service.db.commit()
-        self.task_service.db.refresh(task)
-        return task
+        # Delegate all update and validation logic to the service layer.
+        updated_task = self.task_service.update(
+            project_id=project_id,
+            task_id=task_id,
+            title=title.strip() if title else None,
+            description=description.strip() if description else None,
+            status=status,
+            deadline=deadline
+        )
+        return updated_task
 
     def delete_task(self, project_id: int, task_id: int):
         deleted = self.task_service.delete(task_id)
@@ -130,21 +104,21 @@ class ToDoApp:
     def move_task(self, project_id: int, task_id: int, new_status: Status):
         if new_status not in ("todo", "doing", "done"):
             raise ValidationError("Invalid status. Use 'todo', 'doing', or 'done'.")
+
         updated = self.task_service.update_task_status(task_id, new_status)
         if not updated:
             raise ValidationError("Task not found.")
         return updated
 
-    # ---------------- Helpers ----------------
-    def _validate_deadline(self, date_str: str) -> None:
-        try:
-            datetime.strptime(date_str, "%Y-%m-%d")
-        except ValueError:
-            raise ValidationError("Deadline must be in YYYY-MM-DD format.")
-
     # ---------------- CLI ----------------
     def run(self) -> None:
-        print("\n🧱 ToDo List CLI (Phase 2: Database Mode) — type 'help' to see commands.")
+        # Added warning as per project documentation standard.
+        print("\n" + "=" * 70)
+        print("⚠️ WARNING: CLI interface is deprecated as of Phase 3.")
+        print("Please use the REST API for all interactions and new features.")
+        print("=" * 70 + "\n")
+
+        print("🧱 ToDo List CLI (Phase 2: Database Mode) — type 'help' to see commands.")
         while True:
             try:
                 cmd = input("\n> ").strip().lower()
