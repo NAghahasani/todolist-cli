@@ -6,6 +6,7 @@ from todolist.app.persistence.models import status_enum
 from todolist.app.persistence.repositories.task_repository import TaskRepository
 from todolist.app.exceptions.errors import TaskNotFoundError
 
+# The assumption is that status_enum.enums contains ('TODO', 'DOING', 'DONE') in uppercase.
 ALLOWED_STATUSES = [e for e in status_enum.enums]
 
 
@@ -13,28 +14,16 @@ class TaskService:
     """Handles business logic for task creation, retrieval, modification, and status updates."""
 
     def __init__(self, db: Session) -> None:
-        """Initializes the service with a TaskRepository instance.
-
-        :param db: The SQLAlchemy database session.
-        """
+        """Initializes the service with a TaskRepository instance."""
         self.repo = TaskRepository(db)
         self.db = db
 
     def list_tasks(self, project_id: int) -> list[Task]:
-        """Returns all tasks for a specific project ID.
-
-        :param project_id: The ID of the parent project.
-        :return: List of Task objects.
-        """
+        """Returns all tasks for a specific project ID."""
         return self.repo.get_all(project_id)
 
     def get_task(self, project_id: int, task_id: int) -> Task | None:
-        """Retrieves a single task by its IDs.
-
-        :param project_id: The ID of the parent project.
-        :param task_id: The ID of the task.
-        :return: Task object or None.
-        """
+        """Retrieves a single task by its IDs."""
         return self.repo.get_by_id(project_id, task_id)
 
     def create_task(
@@ -45,16 +34,7 @@ class TaskService:
             status: str = "TODO",
             deadline: datetime | None = None,
     ) -> Task:
-        """Creates a new task after checking project limits and setting default status.
-
-        :param project_id: The ID of the parent project.
-        :param title: The title of the task (max 30 chars).
-        :param description: Optional description (max 150 chars).
-        :param status: The initial status (defaults to TODO).
-        :param deadline: Optional datetime deadline.
-        :return: The created Task instance.
-        :raises MaxLimitExceededError: If the maximum number of tasks for the project is reached.
-        """
+        """Creates a new task after checking project limits and setting default status."""
         # if self.repo.get_task_count(project_id) >= MAX_TASK_LIMIT:
         #     raise MaxLimitExceededError("Maximum number of tasks reached for this project.")
 
@@ -75,15 +55,7 @@ class TaskService:
             status: str | None = None,
             deadline: datetime | None = None,
     ) -> Task:
-        """Updates task details using partial data (for PATCH).
-
-        :param project_id: The ID of the parent project.
-        :param task_id: The ID of the task to update.
-        :param status: New status (if provided).
-        :return: The updated Task instance.
-        :raises ValueError: If status is invalid.
-        :raises TaskNotFoundError: If the task ID is not found.
-        """
+        """Updates task details using partial data (for PATCH)."""
         update_data = {
             "title": title,
             "description": description,
@@ -92,8 +64,11 @@ class TaskService:
         }
         update_data = {k: v for k, v in update_data.items() if v is not None}
 
-        if "status" in update_data and update_data["status"] not in ALLOWED_STATUSES:
-            raise ValueError("Invalid status value.")
+        if "status" in update_data:
+            # FIX: Ensure status input is converted to uppercase before validation
+            update_data["status"] = update_data["status"].upper()
+            if update_data["status"] not in ALLOWED_STATUSES:
+                raise ValueError("Invalid status value.")
 
         task = self.repo.update_by_data(
             project_id=project_id,
@@ -108,15 +83,11 @@ class TaskService:
     def update_task_status(
             self, project_id: int, task_id: int, new_status: str
     ) -> Task:
-        """Updates only the status of a specific task.
+        """Updates only the status of a specific task."""
 
-        :param project_id: The ID of the parent project.
-        :param task_id: The ID of the task.
-        :param new_status: The new status value.
-        :return: The updated Task instance.
-        :raises ValueError: If status is invalid.
-        :raises TaskNotFoundError: If the task ID is not found.
-        """
+        # FIX: Ensure status input is converted to uppercase before validation
+        new_status = new_status.upper()
+
         if new_status not in ALLOWED_STATUSES:
             raise ValueError("Invalid status value.")
 
@@ -128,12 +99,7 @@ class TaskService:
         return task
 
     def delete_task(self, project_id: int, task_id: int) -> bool:
-        """Deletes a task by its ID.
-
-        :param project_id: The ID of the parent project (for scope validation).
-        :param task_id: The ID of the task to delete.
-        :return: True if the task was deleted, False otherwise.
-        """
+        """Deletes a task by its ID."""
         task = self.repo.get_by_id(project_id, task_id)
         if task is None:
             return False
