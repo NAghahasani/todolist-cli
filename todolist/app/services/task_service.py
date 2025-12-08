@@ -34,9 +34,7 @@ class TaskService:
             status: str = "TODO",
             deadline: datetime | None = None,
     ) -> Task:
-        """Creates a new task after checking project limits and setting default status."""
-        # if self.repo.get_task_count(project_id) >= MAX_TASK_LIMIT:
-        #     raise MaxLimitExceededError("Maximum number of tasks reached for this project.")
+
 
         return self.repo.create(
             project_id=project_id,
